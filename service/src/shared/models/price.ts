@@ -61,7 +61,8 @@ productPriceSchema.plugin(updateIfCurrentPlugin);
 
 const ProductPrice = model<ProductPriceDoc>(
   "ProductPrice",
-  productPriceSchema
+  productPriceSchema,
+  "product-prices"
 );
 
 export { ProductPrice, ProductPriceDoc };
