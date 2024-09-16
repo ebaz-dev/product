@@ -1,6 +1,5 @@
 import { Document, Schema, model, Types } from "mongoose";
 import { updateIfCurrentPlugin } from "mongoose-update-if-current";
-import { ProductPrice } from "./price";
 
 interface ProductDoc extends Document {
   id: Types.ObjectId;
