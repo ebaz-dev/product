@@ -1,20 +1,20 @@
 import { Document, Schema, model, Types } from "mongoose";
 import { updateIfCurrentPlugin } from "mongoose-update-if-current";
-import { Price } from "./price";
+import { ProductPrice } from "./price";
 
 interface ProductDoc extends Document {
   id: Types.ObjectId;
   name: string;
   slug: string;
   barCode: string;
-  customerId: string;
-  vendorId?: string;
-  categoryId?: string;
-  brandId?: string;
+  customerId: Types.ObjectId;
+  vendorId?: Types.ObjectId;
+  categoryId?: Types.ObjectId;
+  brandId?: Types.ObjectId;
   description?: string;
   image?: Array<string>;
   attributes?: Array<object>;
-  prices: Price;
+  prices: Types.ObjectId[];
   thirdPartyData?: object;
 }
 
@@ -33,22 +33,22 @@ const productSchema = new Schema<ProductDoc>(
       required: true,
     },
     customerId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "Customer",
     },
     vendorId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: false,
       ref: "Vendor",
     },
     categoryId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: false,
-      ref: "Category",
+      ref: "ProductCategory",
     },
     brandId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: false,
       ref: "Brand",
     },
@@ -57,10 +57,7 @@ const productSchema = new Schema<ProductDoc>(
       required: false,
     },
     prices: {
-      type: new Schema<Price>({
-        price: { type: Number, required: true },
-        cost: { type: Number, required: true },
-      }),
+      type: [{ type: Schema.Types.ObjectId, ref: "ProductPrice" }],
       required: false,
     },
     image: {

@@ -109,8 +109,10 @@ router.post(
 
       await productPrice.save({ session });
 
-      product.prices = productPrice.prices;
+      product.prices.push(productPrice._id as mongoose.Types.ObjectId);
 
+      await product.save({ session });
+      
       await session.commitTransaction();
 
       res.status(StatusCodes.OK).send(product);

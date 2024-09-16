@@ -23,28 +23,13 @@ router.get(
       throw new BadRequestError("Invalid category or merchant ID");
     }
 
-    try {
-      const pipeline = getProductWithPriceAggregation(
-        id,
-        categoryId as string,
-        merchantId as string
-      );
-      console.log("Aggregation Pipeline:", JSON.stringify(pipeline, null, 2));
-      const result = await Product.aggregate(pipeline).exec();
+    const result = await Product.findOne({_id: id}).populate("prices");
 
-      if (result.length === 0) {
-        throw new NotFoundError();
-      }
-      console.log("Aggregation Result:", JSON.stringify(result, null, 2));
-      const productWithPrice = result[0];
-
-      res.status(StatusCodes.OK).send(productWithPrice);
-    } catch (error) {
-      console.error("Error fetching product with price:", error);
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-        message: "An error occurred while fetching the product",
-      });
+    if (!result) {
+      throw new NotFoundError();
     }
+    
+    res.status(StatusCodes.OK).send(result);
   }
 );
 

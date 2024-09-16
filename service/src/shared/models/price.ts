@@ -8,7 +8,7 @@ export interface Price {
 
 interface ProductPriceDoc extends Document {
   id: Types.ObjectId;
-  productId: string;
+  productId: Types.ObjectId;
   type: string;
   level: number;
   entityReferences: String[];
@@ -18,7 +18,7 @@ interface ProductPriceDoc extends Document {
 const productPriceSchema = new Schema<ProductPriceDoc>(
   {
     productId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "Product",
     },
