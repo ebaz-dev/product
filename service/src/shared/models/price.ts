@@ -59,10 +59,6 @@ const productPriceSchema = new Schema<ProductPriceDoc>(
 
 productPriceSchema.plugin(updateIfCurrentPlugin);
 
-const ProductPrice = model<ProductPriceDoc>(
-  "ProductPrice",
-  productPriceSchema,
-  "product-prices"
-);
+const ProductPrice = model<ProductPriceDoc>("ProductPrice", productPriceSchema);
 
 export { ProductPrice, ProductPriceDoc };
