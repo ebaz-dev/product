@@ -3,7 +3,6 @@ import { param } from "express-validator";
 import { validateRequest, BadRequestError, NotFoundError } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product } from "../shared/models/product";
-import { getProductWithPriceAggregation } from "../utils/product-aggregation";
 import mongoose from "mongoose";
 
 const router = express.Router();
