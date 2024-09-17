@@ -1,5 +1,5 @@
 import { Publisher } from "@ebazdev/core";
-import { ProductUpdatedEvent } from "../../shared/events/product-update-event";
+import { ProductUpdatedEvent } from "../../shared/events/product-updated-event";
 import { ProductEventSubjects } from "../../shared/events/product-event-subjects";
 
 export class ProductUpdatedPublisher extends Publisher<ProductUpdatedEvent> {

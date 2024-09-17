@@ -6,6 +6,8 @@ interface AdjustedPrice {
   prices: Types.ObjectId;
 }
 
+interface Customer {}
+
 export interface IfindWithAdjustedPrice {
   query: FilterQuery<ProductDoc>;
   customer: object;
@@ -13,9 +15,17 @@ export interface IfindWithAdjustedPrice {
   limit: number;
 }
 
+export interface IFindOneWithAdjustedPrice {
+  query: { _id: Types.ObjectId };
+  customer: { customerId: Types.ObjectId; merchantId?: Types.ObjectId };
+}
 export interface IReturnFindWithAdjustedPrice {
   products: ProductDoc[];
   count: number;
+}
+
+export interface IReturnFindOneWithAdjustedPrice {
+  product: ProductDoc;
 }
 
 interface ProductDoc extends Document {
@@ -34,6 +44,7 @@ interface ProductDoc extends Document {
   _adjustedPrice?: Price;
   thirdPartyData?: object;
   inCase: number;
+  inventoryId: Types.ObjectId;
 }
 
 interface ProductModel extends Model<ProductDoc> {
@@ -42,9 +53,8 @@ interface ProductModel extends Model<ProductDoc> {
   ): Promise<IReturnFindWithAdjustedPrice>;
 
   findOneWithAdjustedPrice(
-    query: object,
-    customer: object
-  ): Promise<ProductDoc | null>;
+    params: IFindOneWithAdjustedPrice
+  ): Promise<IReturnFindOneWithAdjustedPrice>;
 
   getAdjustedPrice(externalData: {
     customerId: Types.ObjectId;
@@ -110,6 +120,11 @@ const productSchema = new Schema<ProductDoc>(
       type: Number,
       required: true,
     },
+    inventoryId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "Inventory",
+    },
   },
   {
     toJSON: {
@@ -154,11 +169,10 @@ productSchema.statics.findWithAdjustedPrice = async function (
 };
 
 productSchema.statics.findOneWithAdjustedPrice = async function (
-  query: object,
-  customer: object
+  params: IFindOneWithAdjustedPrice
 ) {
-  const product = await this.findOne(query);
-  const price = await product.getAdjustedPrice(customer);
+  const product = await this.findOne(params.query);
+  const price = await product.getAdjustedPrice(params.customer);
   product.adjustedPrice = price.prices;
   return product;
 };

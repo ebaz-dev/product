@@ -22,10 +22,14 @@ router.get(
       throw new BadRequestError("Invalid category or merchant ID");
     }
 
-    const product = await Product.findOneWithAdjustedPrice(
-      { _id: id },
-      { customerId: merchantId, categoryId: categoryId }
-    );
+    const productId = new mongoose.Types.ObjectId(id);
+
+    const product = await Product.findOneWithAdjustedPrice({
+      query: { _id: productId },
+      customer: {
+        customerId: new mongoose.Types.ObjectId(merchantId as string),
+      },
+    });
 
     if (!product) {
       throw new NotFoundError();

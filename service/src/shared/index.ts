@@ -1,5 +1,5 @@
 export * from "./models/product"
 export * from "./models/price"
-export * from "./events/product-create-event"
-export * from "./events/product-update-event"
+export * from "./events/product-created-event"
+export * from "./events/product-updated-event"
 export * from "./events/product-event-subjects"
