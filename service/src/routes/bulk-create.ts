@@ -6,7 +6,7 @@ import { Product } from "../shared/models/product";
 import { ProductPrice } from "../shared/models/price";
 import slugify from "slugify";
 import mongoose from "mongoose";
-import { ProductsCreatedPublisher } from "../events/publisher/product-created-publisher";
+import { ProductsCreatedPublisher } from "../events/publisher/products-created-publisher";
 import { natsWrapper } from "../nats-wrapper";
 
 const router = express.Router();
