@@ -6,6 +6,8 @@ import { Product } from "../shared/models/product";
 import { ProductPrice } from "../shared/models/price";
 import slugify from "slugify";
 import mongoose from "mongoose";
+import { ProductCreatedPublisher } from "../events/publisher/product-created-publisher";
+import { natsWrapper } from "../nats-wrapper";
 
 const router = express.Router();
 
@@ -56,6 +58,9 @@ router.post(
     body("prices.cost")
       .isFloat({ min: 0 })
       .withMessage("Cost must be a non-negative number"),
+    body("inCase")
+      .isFloat({ min: 0 })
+      .withMessage("In case must be a non-negative number"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
@@ -70,6 +75,7 @@ router.post(
       image,
       attributes,
       prices,
+      inCase,
     } = req.body;
 
     const existingProduct = await Product.findOne({ barCode });
@@ -95,6 +101,7 @@ router.post(
         description,
         image,
         attributes,
+        inCase,
       });
 
       await product.save({ session });
@@ -112,8 +119,25 @@ router.post(
       product.prices.push(productPrice._id as mongoose.Types.ObjectId);
 
       await product.save({ session });
-      
+
       await session.commitTransaction();
+
+      await new ProductCreatedPublisher(natsWrapper.client).publish({
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        barCode: product.barCode,
+        customerId: product.customerId.toString(),
+        vendorId: product?.vendorId?.toString(),
+        categoryId: product?.categoryId?.toString(),
+        brandId: product?.brandId?.toString(),
+        description: product.description || "",
+        image: product.image || [],
+        attributes: product.attributes || [],
+        prices: product.prices.map((price) => price.toString()),
+        thirdPartyData: product.thirdPartyData || {},
+        inCase: product.inCase,
+      });
 
       res.status(StatusCodes.OK).send(product);
     } catch (error: any) {

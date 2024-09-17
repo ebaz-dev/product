@@ -1,5 +1,22 @@
-import { Document, Schema, model, Types } from "mongoose";
+import { Document, Schema, model, Types, Model, FilterQuery } from "mongoose";
 import { updateIfCurrentPlugin } from "mongoose-update-if-current";
+import { ProductPrice, Price } from "./price";
+
+interface AdjustedPrice {
+  prices: Types.ObjectId;
+}
+
+export interface IfindWithAdjustedPrice {
+  query: FilterQuery<ProductDoc>;
+  customer: object;
+  skip: number;
+  limit: number;
+}
+
+export interface IReturnFindWithAdjustedPrice {
+  products: ProductDoc[];
+  count: number;
+}
 
 interface ProductDoc extends Document {
   id: Types.ObjectId;
@@ -14,7 +31,25 @@ interface ProductDoc extends Document {
   image?: Array<string>;
   attributes?: Array<object>;
   prices: Types.ObjectId[];
+  _adjustedPrice?: Price;
   thirdPartyData?: object;
+  inCase: number;
+}
+
+interface ProductModel extends Model<ProductDoc> {
+  findWithAdjustedPrice(
+    params: IfindWithAdjustedPrice
+  ): Promise<IReturnFindWithAdjustedPrice>;
+
+  findOneWithAdjustedPrice(
+    query: object,
+    customer: object
+  ): Promise<ProductDoc | null>;
+
+  getAdjustedPrice(externalData: {
+    customerId: Types.ObjectId;
+    categoryId?: Types.ObjectId;
+  }): Promise<AdjustedPrice>;
 }
 
 const productSchema = new Schema<ProductDoc>(
@@ -71,10 +106,18 @@ const productSchema = new Schema<ProductDoc>(
       type: Object,
       required: false,
     },
+    inCase: {
+      type: Number,
+      required: true,
+    },
   },
   {
     toJSON: {
+      virtuals: true,
       transform(doc, ret) {
+        if (doc._adjustedPrice) {
+          ret.adjustedPrice = doc._adjustedPrice;
+        }
         ret.id = ret._id;
         delete ret._id;
         delete ret.__v;
@@ -86,6 +129,76 @@ const productSchema = new Schema<ProductDoc>(
 
 productSchema.plugin(updateIfCurrentPlugin);
 
-const Product = model<ProductDoc>("Product", productSchema);
+productSchema
+  .virtual("adjustedPrice")
+  .get(function () {
+    return this._adjustedPrice;
+  })
+  .set(function (price) {
+    this._adjustedPrice = price;
+  });
+
+productSchema.statics.findWithAdjustedPrice = async function (
+  params: IfindWithAdjustedPrice
+) {
+  const count = await this.countDocuments(params.query);
+  const products = await this.find(params.query)
+    .skip(params.skip)
+    .limit(params.limit);
+
+  for (const product of products) {
+    const price = await product.getAdjustedPrice(params.customer);
+    product.adjustedPrice = price.prices;
+  }
+  return { products, count };
+};
+
+productSchema.statics.findOneWithAdjustedPrice = async function (
+  query: object,
+  customer: object
+) {
+  const product = await this.findOne(query);
+  const price = await product.getAdjustedPrice(customer);
+  product.adjustedPrice = price.prices;
+  return product;
+};
+
+productSchema.methods.getAdjustedPrice = async function (externalData: {
+  customerId: Types.ObjectId;
+  categoryId?: Types.ObjectId;
+}) {
+  const productPrices = await ProductPrice.find({ productId: this._id });
+  productPrices.sort((a, b) => b.level - a.level);
+
+  let selectedPrice = productPrices[0];
+
+  for (const price of productPrices) {
+    if (
+      price.type === "custom" &&
+      externalData.customerId &&
+      price.entityReferences.includes(externalData.customerId.toString())
+    ) {
+      selectedPrice = price;
+      break;
+    }
+
+    if (
+      price.type === "category" &&
+      externalData.categoryId &&
+      price.entityReferences.includes(externalData.categoryId.toString())
+    ) {
+      selectedPrice = price;
+      break;
+    }
+  }
+  const priceData = {
+    price: selectedPrice.prices.price,
+    cost: selectedPrice.prices.cost,
+  };
+
+  return { prices: priceData };
+};
+
+const Product = model<ProductDoc, ProductModel>("Product", productSchema);
 
 export { Product, ProductDoc };

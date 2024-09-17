@@ -6,6 +6,8 @@ import { Product } from "../shared/models/product";
 import { ProductPrice } from "../shared/models/price";
 import slugify from "slugify";
 import mongoose from "mongoose";
+import { ProductsCreatedPublisher } from "../events/publisher/product-created-publisher";
+import { natsWrapper } from "../nats-wrapper";
 
 const router = express.Router();
 
@@ -57,6 +59,9 @@ router.post(
     body("*.prices.cost")
       .isFloat({ min: 0 })
       .withMessage("Cost must be a non-negative number"),
+    body("*.inCase")
+      .isFloat({ min: 0 })
+      .withMessage("In case must be a non-negative number"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
@@ -97,7 +102,7 @@ router.post(
 
       const productPrices = products.map((product: any, index: number) => {
         return {
-          productId: result.insertedIds[index],
+          productId: new mongoose.Types.ObjectId(result.insertedIds[index]),
           type: "default",
           level: 1,
           entityReferences: [],
@@ -105,9 +110,45 @@ router.post(
         };
       });
 
-      await ProductPrice.insertMany(productPrices, { session });
+      const insertedProductPrices = await ProductPrice.insertMany(
+        productPrices,
+        { session }
+      );
+
+      const updateOps = insertedProductPrices.map((productPrice: any) => {
+        return {
+          updateOne: {
+            filter: { _id: productPrice.productId },
+            update: { $push: { prices: productPrice._id } },
+          },
+        };
+      });
+
+      await Product.bulkWrite(updateOps, { session });
 
       await session.commitTransaction();
+
+      await new ProductsCreatedPublisher(natsWrapper.client).publish(
+        products.map((product: any, index: number) => ({
+          id: result.insertedIds[index].toString(),
+          name: product.name,
+          slug: slugify(product.name, { lower: true, strict: true }),
+          barCode: product.barCode,
+          customerId: product.customerId.toString(),
+          vendorId: product.vendorId?.toString(),
+          categoryId: product.categoryId?.toString(),
+          brandId: product.brandId?.toString(),
+          description: product.description || "",
+          image: product.image || [],
+          attributes: product.attributes || [],
+          prices: insertedProductPrices[index].prices.map((price: any) =>
+            price._id.toString()
+          ),
+          thirdPartyData: product.thirdPartyData || {},
+          inCase: product.inCase,
+        }))
+      );
+
       res.status(StatusCodes.CREATED).send(result);
     } catch (error: any) {
       await session.abortTransaction();

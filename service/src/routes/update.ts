@@ -5,6 +5,8 @@ import { StatusCodes } from "http-status-codes";
 import { Product } from "../shared/models/product";
 import mongoose from "mongoose";
 import slugify from "slugify";
+import { ProductUpdatedPublisher } from "../events/publisher/product-updated-publisher";
+import { natsWrapper } from "../nats-wrapper";
 
 const router = express.Router();
 
@@ -68,10 +70,35 @@ router.put(
 
     Object.assign(product, otherFields);
 
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
-      await product.save();
+      await product.save({ session });
+
+      await new ProductUpdatedPublisher(natsWrapper.client).publish({
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        barCode: product.barCode,
+        customerId: product.customerId,
+        vendorId: product?.vendorId,
+        categoryId: product?.categoryId,
+        brandId: product?.brandId,
+        description: product?.description,
+        image: product?.image,
+        attributes: product?.attributes,
+        prices: product.prices,
+        thirdPartyData: product.thirdPartyData,
+        inCase: product.inCase,
+      });
+
+      await session.commitTransaction();
+
       res.status(StatusCodes.OK).send(product);
     } catch (error: any) {
+      await session.abortTransaction();
+
       console.error(error);
 
       if (error.name === "ValidationError") {
@@ -82,6 +109,8 @@ router.put(
       }
 
       throw new BadRequestError("Error updating product");
+    } finally {
+      session.endSession();
     }
   }
 );

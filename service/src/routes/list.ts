@@ -2,8 +2,8 @@ import express, { Request, Response } from "express";
 import { query } from "express-validator";
 import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
-import { Product } from "../shared/models/product";
-import mongoose from "mongoose";
+import { Product, ProductDoc } from "../shared/models/product";
+import mongoose, { FilterQuery } from "mongoose";
 
 const router = express.Router();
 
@@ -78,11 +78,12 @@ router.get(
       limit = 20,
     } = req.query;
 
-    const query: any = {};
+    const query: FilterQuery<ProductDoc> = {};
     if (ids) {
       const idsArray = (ids as string).split(",").map((id) => id.trim());
       query._id = { $in: idsArray };
     }
+
     if (name) query.name = { $regex: name, $options: "i" };
     if (slug) query.slug = { $regex: slug, $options: "i" };
     if (barCode) query.barCode = { $regex: barCode, $options: "i" };
@@ -99,14 +100,17 @@ router.get(
     const limitNumber = parseInt(limit as string, 10);
     const skip = (pageNumber - 1) * limitNumber;
 
-    const products = await Product.find(query).skip(skip).limit(limitNumber);
-
-    const totalProducts = await Product.countDocuments(query);
+    const { products, count: total } = await Product.findWithAdjustedPrice({
+      query,
+      customer: { customerId: customerId, categoryId: categoryId },
+      skip,
+      limit: limitNumber,
+    });
 
     res.status(StatusCodes.OK).send({
       products,
-      totalProducts,
-      totalPages: Math.ceil(totalProducts / limitNumber),
+      total,
+      totalPages: Math.ceil(total / limitNumber),
       currentPage: pageNumber,
     });
   }

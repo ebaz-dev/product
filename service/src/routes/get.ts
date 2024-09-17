@@ -21,14 +21,16 @@ router.get(
     ) {
       throw new BadRequestError("Invalid category or merchant ID");
     }
+    const product = await Product.findOneWithAdjustedPrice(
+      { _id: id },
+      { customerId: merchantId, categoryId: categoryId }
+    );
 
-    const result = await Product.findOne({_id: id}).populate("prices");
-
-    if (!result) {
+    if (!product) {
       throw new NotFoundError();
     }
-    
-    res.status(StatusCodes.OK).send(result);
+
+    res.status(StatusCodes.OK).send(product);
   }
 );
 
