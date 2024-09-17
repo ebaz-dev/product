@@ -5,8 +5,8 @@
   "scripts": {
     "start": "ts-node-dev --poll src/index.ts",
     "test": "jest --watchAll --no-cache",
-    "clean-common-win": "powershell -Command \"cd ..\\common; npm run clean-src-win; cd ..\\service\"",
-    "pub-win": "npm run clean-common-win && powershell -Command \"Copy-Item -Recurse -Force src\\shared\\* ..\\common\\src\" && powershell -Command \"cd ..\\common; npm run pub-win\""
+  "clean-common": "cd ..\\common && npm run clean-src && cd ..\\service",
+  "pub": "npm run clean-common && xcopy /E /I /Y src\\shared\\* ..\\common\\src && cd ..\\common && npm run pub"
   },
   "jest": {
     "preset": "ts-jest",

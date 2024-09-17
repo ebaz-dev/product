@@ -1,16 +1,16 @@
 {
   "name": "@ebazdev/product",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "files": [
     "build/**/*"
   ],
   "scripts": {
-    "build": "npm run clean-win && tsc",
-    "clean-win": "del ..\\common\\build\\*",
-    "clean-src-win": "del ..\\common\\src\\*",
-    "pub-win": "npm version patch && npm run build && npm publish"
+    "clean": "del /Q .\\build\\*",
+    "clean-src": "del /Q .\\src\\*",
+    "build": "npm run clean && tsc",
+    "pub": "npm version patch && npm run build && npm publish"
   },
   "keywords": [
     "node",

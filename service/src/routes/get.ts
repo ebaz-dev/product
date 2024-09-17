@@ -21,6 +21,7 @@ router.get(
     ) {
       throw new BadRequestError("Invalid category or merchant ID");
     }
+
     const product = await Product.findOneWithAdjustedPrice(
       { _id: id },
       { customerId: merchantId, categoryId: categoryId }

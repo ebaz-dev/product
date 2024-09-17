@@ -1,4 +1,3 @@
-import { Types } from "mongoose";
 import { ProductEventSubjects } from "./product-event-subjects";
 
 export interface IProductCreatedEvent {
