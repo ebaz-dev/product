@@ -6,8 +6,8 @@
     "start": "ts-node-dev --poll src/index.ts",
     "test": "jest --watchAll --no-cache",
     "clean-common:windows": "cd ..\\common && npm run clean-src:windows && cd ..\\service",
-    "pub:windows": "npm run clean-common:windows && xcopy /E /I /Y src\\shared\\* ..\\common\\src && cd ..\\common && npm run pub:windows",
-    "clean-common": "cd ./../common && npm run clean-src && cd ../service",
+    "pub:windows": "npm run clean-common:windows && xcopy /E /I /Y src\\shared\\* ..\\common\\src && cd ..\\common && npm run pub",
+    "clean-common": "cd ./../common && npm run clean-src:windows && cd ../service",
     "pub": "npm run clean-common && cp -rf src/shared/* ../common/src && cd ../common && npm run pub"
   },
   "jest": {
