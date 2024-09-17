@@ -1,6 +1,6 @@
 import { ProductEventSubjects } from "./product-event-subjects";
 
-export interface IProductCreatedEvent {
+export interface ProductCreatedEvent {
   subject: ProductEventSubjects.ProductCreated;
   data: {
     id: string;
@@ -18,24 +18,4 @@ export interface IProductCreatedEvent {
     thirdPartyData?: object;
     inCase: number;
   };
-}
-
-export interface IProductsCreatedEvent {
-  subject: ProductEventSubjects.ProductsCreated;
-  data: {
-    id: string;
-    name: string;
-    slug: string;
-    barCode: string;
-    customerId: string;
-    vendorId?: string;
-    categoryId?: string;
-    brandId?: string;
-    description: string;
-    image: Array<string>;
-    attributes?: Array<object>;
-    prices: string[];
-    thirdPartyData?: object;
-    inCase: number;
-  }[];
 }

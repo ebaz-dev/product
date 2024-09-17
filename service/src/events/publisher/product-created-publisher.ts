@@ -1,16 +1,10 @@
 import { Publisher } from "@ebazdev/core";
 import {
-  IProductCreatedEvent,
-  IProductsCreatedEvent,
+  ProductCreatedEvent,
 } from "../../shared/events/product-create-event";
 import { ProductEventSubjects } from "../../shared/events/product-event-subjects";
 
-export class ProductCreatedPublisher extends Publisher<IProductCreatedEvent> {
+export class ProductCreatedPublisher extends Publisher<ProductCreatedEvent> {
   readonly subject: ProductEventSubjects.ProductCreated =
     ProductEventSubjects.ProductCreated;
-}
-
-export class ProductsCreatedPublisher extends Publisher<IProductsCreatedEvent> {
-  readonly subject: ProductEventSubjects.ProductsCreated =
-    ProductEventSubjects.ProductsCreated;
 }

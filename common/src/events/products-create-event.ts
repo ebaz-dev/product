@@ -1,7 +1,7 @@
 import { ProductEventSubjects } from "./product-event-subjects";
 
-export interface ProductCreatedEvent {
-  subject: ProductEventSubjects.ProductCreated;
+export interface ProductsCreatedEvent {
+  subject: ProductEventSubjects.ProductsCreated;
   data: {
     id: string;
     name: string;
@@ -17,5 +17,5 @@ export interface ProductCreatedEvent {
     prices: string[];
     thirdPartyData?: object;
     inCase: number;
-  };
+  }[];
 }

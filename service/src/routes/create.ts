@@ -120,8 +120,6 @@ router.post(
 
       await product.save({ session });
 
-      await session.commitTransaction();
-
       await new ProductCreatedPublisher(natsWrapper.client).publish({
         id: product.id,
         name: product.name,
@@ -138,6 +136,8 @@ router.post(
         thirdPartyData: product.thirdPartyData || {},
         inCase: product.inCase,
       });
+
+      await session.commitTransaction();
 
       res.status(StatusCodes.OK).send(product);
     } catch (error: any) {

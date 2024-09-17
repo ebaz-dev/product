@@ -126,8 +126,6 @@ router.post(
 
       await Product.bulkWrite(updateOps, { session });
 
-      await session.commitTransaction();
-
       await new ProductsCreatedPublisher(natsWrapper.client).publish(
         products.map((product: any, index: number) => ({
           id: result.insertedIds[index].toString(),
@@ -149,7 +147,10 @@ router.post(
         }))
       );
 
+      await session.commitTransaction();
+
       res.status(StatusCodes.CREATED).send(result);
+      
     } catch (error: any) {
       await session.abortTransaction();
       console.error("Bulk create operation failed", error);

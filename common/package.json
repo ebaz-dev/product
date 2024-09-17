@@ -1,14 +1,18 @@
 {
   "name": "@ebazdev/product",
-  "version": "1.0.10",
+  "version": "1.0.14",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "files": [
     "build/**/*"
   ],
   "scripts": {
-    "clean": "del /Q .\\build\\*",
-    "clean-src": "del /Q .\\src\\*",
+    "clean:windows": "if exist .\\build rmdir /S /Q .\\build",
+    "clean-src:windows": "rmdir /S /Q .\\src && mkdir .\\src",
+    "build:windows": "npm run clean:windows && tsc",
+    "pub:windows": "npm version patch && npm run build:windows && npm publish",
+    "clean": "del ./build/*",
+    "clean-src": "del ./src/*",
     "build": "npm run clean && tsc",
     "pub": "npm version patch && npm run build && npm publish"
   },
