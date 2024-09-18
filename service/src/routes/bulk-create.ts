@@ -150,7 +150,6 @@ router.post(
       await session.commitTransaction();
 
       res.status(StatusCodes.CREATED).send(result);
-      
     } catch (error: any) {
       await session.abortTransaction();
       console.error("Bulk create operation failed", error);

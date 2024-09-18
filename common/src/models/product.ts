@@ -6,8 +6,6 @@ interface AdjustedPrice {
   prices: Types.ObjectId;
 }
 
-interface Customer {}
-
 export interface IfindWithAdjustedPrice {
   query: FilterQuery<ProductDoc>;
   customer: object;
@@ -28,6 +26,13 @@ export interface IReturnFindOneWithAdjustedPrice {
   product: ProductDoc;
 }
 
+interface Inventory {
+  id: Types.ObjectId;
+  totalStock: number;
+  reservedStock: number;
+  availableStock: number;
+}
+
 interface ProductDoc extends Document {
   id: Types.ObjectId;
   name: string;
@@ -45,6 +50,7 @@ interface ProductDoc extends Document {
   thirdPartyData?: object;
   inCase: number;
   inventoryId: Types.ObjectId;
+  iventory?: Inventory;
 }
 
 interface ProductModel extends Model<ProductDoc> {
@@ -142,6 +148,13 @@ const productSchema = new Schema<ProductDoc>(
   }
 );
 
+productSchema.virtual("inventory", {
+  ref: "Inventory",
+  localField: "inventoryId",
+  foreignField: "_id",
+  justOne: true,
+});
+
 productSchema.plugin(updateIfCurrentPlugin);
 
 productSchema
@@ -160,7 +173,10 @@ productSchema.statics.findWithAdjustedPrice = async function (
   const products = await this.find(params.query)
     .skip(params.skip)
     .limit(params.limit)
-    .populate("inventoryId");
+    .populate({
+      path: "inventory",
+      select: "totalStock reservedStock availableStock",
+    });
 
   for (const product of products) {
     const price = await product.getAdjustedPrice(params.customer);
@@ -172,7 +188,10 @@ productSchema.statics.findWithAdjustedPrice = async function (
 productSchema.statics.findOneWithAdjustedPrice = async function (
   params: IFindOneWithAdjustedPrice
 ) {
-  const product = await this.findOne(params.query);
+  const product = await this.findOne(params.query).populate({
+    path: "inventory",
+    select: "totalStock reservedStock availableStock",
+  });
   const price = await product.getAdjustedPrice(params.customer);
   product.adjustedPrice = price.prices;
   return product;

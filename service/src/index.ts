@@ -4,6 +4,10 @@ import { natsWrapper } from "./nats-wrapper";
 import { InventoryCreatedListener } from "./events/listener/inventory-created-listener";
 
 const start = async () => {
+  if (!process.env.PORT) {
+    throw new Error("PORT must be defined");
+  }
+
   if (!process.env.JWT_KEY) {
     throw new Error("JWT_KEY must be defined");
   }
@@ -45,9 +49,15 @@ const start = async () => {
     console.error(err);
   }
 
-  app.listen(process.env.INDEX_PORT, () => {
-    console.log(`Listening on port ${process.env.INDEX_PORT}!!!!!!!!!!`);
+  app.listen(process.env.PORT, () => {
+    console.log(`Listening on port ${process.env.PORT}!!!!!!!!!!`);
   });
 };
 
 start();
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1);
+});
+
