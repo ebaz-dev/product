@@ -1,6 +1,7 @@
 import request from "supertest";
 import { app } from "../../app";
 import { Product } from "../../shared/models/product";
+import { ProductPrice } from "../../shared/models/price"
 import mongoose from "mongoose";
 
 const apiPrefix = `${global.apiPrefix}/list`;
@@ -39,9 +40,21 @@ it("returns a list of products matching the query", async () => {
     description: "Description 1",
     image: ["image1.jpg"],
     attributes: ["attribute1"],
-    price: 100,
+    inCase: 10,
     thirdPartyData: { key: "value" },
   });
+  await product1.save();
+
+  const productPrice1 = new ProductPrice({
+    productId: product1._id,
+    type: "default",
+    level: 1,
+    entityReferences: [],
+    prices: { price: 1000, cost: 20 },
+  });
+  await productPrice1.save();
+
+  product1.prices.push(productPrice1._id as mongoose.Types.ObjectId);
   await product1.save();
 
   const product2 = new Product({
@@ -55,9 +68,21 @@ it("returns a list of products matching the query", async () => {
     description: "Description 2",
     image: ["image2.jpg"],
     attributes: ["attribute2"],
-    price: 200,
+    inCase: 10,
     thirdPartyData: { key: "value" },
   });
+  await product2.save();
+
+  const productPrice2 = new ProductPrice({
+    productId: product2._id,
+    type: "default",
+    level: 1,
+    entityReferences: [],
+    prices: { price: 200, cost: 10 },
+  });
+  await productPrice2.save();
+
+  product2.prices.push(productPrice2._id as mongoose.Types.ObjectId);
   await product2.save();
 
   const response = await request(app)
@@ -85,9 +110,21 @@ it("supports pagination", async () => {
       description: `Description ${i}`,
       image: [`image${i}.jpg`],
       attributes: [`attribute${i}`],
-      price: 100 + i,
+      inCase: 10,
       thirdPartyData: { key: `value${i}` },
     });
+    await product.save();
+
+    const productPrice = new ProductPrice({
+      productId: product._id,
+      type: "default",
+      level: 1,
+      entityReferences: [],
+      prices: { price: 100 + i, cost: 20 + i },
+    });
+    await productPrice.save();
+
+    product.prices.push(productPrice._id as mongoose.Types.ObjectId);
     await product.save();
   }
 

@@ -74,6 +74,7 @@ router.get(
       attributes,
       price,
       thirdPartyData,
+      inCase,
       page = 1,
       limit = 20,
     } = req.query;
@@ -95,6 +96,7 @@ router.get(
     if (attributes) query.attributes = attributes;
     if (price) query.price = price;
     if (thirdPartyData) query.thirdPartyData = thirdPartyData;
+    if (inCase) query.inCase = inCase;
 
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
@@ -109,7 +111,7 @@ router.get(
 
     res.status(StatusCodes.OK).send({
       products,
-      total,
+      totalProducts: total,
       totalPages: Math.ceil(total / limitNumber),
       currentPage: pageNumber,
     });
