@@ -122,7 +122,7 @@ const productSchema = new Schema<ProductDoc>(
     },
     inventoryId: {
       type: Schema.Types.ObjectId,
-      required: true,
+      required: false,
       ref: "Inventory",
     },
   },
@@ -159,7 +159,8 @@ productSchema.statics.findWithAdjustedPrice = async function (
   const count = await this.countDocuments(params.query);
   const products = await this.find(params.query)
     .skip(params.skip)
-    .limit(params.limit);
+    .limit(params.limit)
+    .populate("inventoryId");
 
   for (const product of products) {
     const price = await product.getAdjustedPrice(params.customer);
