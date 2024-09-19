@@ -9,10 +9,10 @@ export interface ProductCreatedEvent {
     barCode: string;
     customerId: string;
     vendorId?: string;
-    categoryId?: string;
+    categoryIds?: string[];
     brandId?: string;
     description: string;
-    image: Array<string>;
+    images: Array<string>;
     attributes?: Array<object>;
     prices: string[];
     thirdPartyData?: object;

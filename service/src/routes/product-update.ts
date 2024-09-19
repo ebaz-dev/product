@@ -3,12 +3,24 @@ import { body, param } from "express-validator";
 import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product } from "../shared/models/product";
+import { ProductCategory } from "../shared/models/category";
 import mongoose from "mongoose";
 import slugify from "slugify";
 import { ProductUpdatedPublisher } from "../events/publisher/product-updated-publisher";
 import { natsWrapper } from "../nats-wrapper";
 
 const router = express.Router();
+
+const getParentCategoryIds = async (
+  categoryId: mongoose.Types.ObjectId
+): Promise<mongoose.Types.ObjectId[]> => {
+  const category = await ProductCategory.findById(categoryId);
+  if (!category || !category.parentId) {
+    return [categoryId];
+  }
+  const parentIds = await getParentCategoryIds(category.parentId);
+  return [categoryId, ...parentIds];
+};
 
 router.put(
   "/update/:id",
@@ -55,7 +67,7 @@ router.put(
   validateRequest,
   async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name, ...otherFields } = req.body;
+    const { name, categoryId, ...otherFields } = req.body;
 
     const product = await Product.findById(id);
 
@@ -66,6 +78,13 @@ router.put(
     if (name) {
       product.name = name;
       product.slug = slugify(name, { lower: true, strict: true });
+    }
+
+    if (categoryId) {
+      const categoryIds = await getParentCategoryIds(
+        new mongoose.Types.ObjectId(categoryId)
+      );
+      product.categoryIds = categoryIds;
     }
 
     Object.assign(product, otherFields);
@@ -83,10 +102,10 @@ router.put(
         barCode: product.barCode,
         customerId: product.customerId,
         vendorId: product?.vendorId,
-        categoryId: product?.categoryId,
+        categoryIds: product?.categoryIds,
         brandId: product?.brandId,
         description: product?.description,
-        image: product?.image,
+        images: product?.images,
         attributes: product?.attributes,
         prices: product.prices,
         thirdPartyData: product.thirdPartyData,

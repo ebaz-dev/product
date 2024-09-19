@@ -1,6 +1,8 @@
 import { Document, Schema, model, Types, Model, FilterQuery } from "mongoose";
 import { updateIfCurrentPlugin } from "mongoose-update-if-current";
 import { ProductPrice, Price } from "./price";
+import { Inventory } from "@ebazdev/inventory";
+import { Brand } from "./brand";
 
 interface AdjustedPrice {
   prices: Types.ObjectId;
@@ -22,8 +24,14 @@ export interface IReturnFindWithAdjustedPrice {
   count: number;
 }
 
-export interface IReturnFindOneWithAdjustedPrice {
-  product: ProductDoc;
+export type IReturnFindOneWithAdjustedPrice = ProductDoc;
+
+interface Brand {
+  id: Types.ObjectId;
+  name: string;
+  slug: string;
+  customerId: Types.ObjectId;
+  image: string;
 }
 
 interface Inventory {
@@ -33,6 +41,35 @@ interface Inventory {
   availableStock: number;
 }
 
+interface Attribute {
+  attributeId: Types.ObjectId;
+  name: string;
+  slug: string;
+  value: string;
+}
+
+const attributeSchema = new Schema<Attribute>(
+  {
+    attributeId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    slug: {
+      type: String,
+      required: true,
+    },
+    value: {
+      type: String,
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
 interface ProductDoc extends Document {
   id: Types.ObjectId;
   name: string;
@@ -40,13 +77,15 @@ interface ProductDoc extends Document {
   barCode: string;
   customerId: Types.ObjectId;
   vendorId?: Types.ObjectId;
-  categoryId?: Types.ObjectId;
+  categoryIds?: Types.ObjectId[];
   brandId?: Types.ObjectId;
+  brand?: Brand;
   description?: string;
-  image?: Array<string>;
-  attributes?: Array<object>;
+  images?: Array<string>;
+  attributes?: Array<Attribute>;
   prices: Types.ObjectId[];
   _adjustedPrice?: Price;
+  adjustedPrice?: Price;
   thirdPartyData?: object;
   inCase: number;
   inventoryId: Types.ObjectId;
@@ -92,10 +131,11 @@ const productSchema = new Schema<ProductDoc>(
       required: false,
       ref: "Vendor",
     },
-    categoryId: {
-      type: Schema.Types.ObjectId,
+    categoryIds: {
+      type: [Schema.Types.ObjectId],
       required: false,
       ref: "ProductCategory",
+      default: [],
     },
     brandId: {
       type: Schema.Types.ObjectId,
@@ -110,13 +150,14 @@ const productSchema = new Schema<ProductDoc>(
       type: [{ type: Schema.Types.ObjectId, ref: "ProductPrice" }],
       required: false,
     },
-    image: {
+    images: {
       type: [String],
       required: false,
     },
     attributes: {
-      type: [Object],
+      type: [attributeSchema],
       required: false,
+      ref: "ProductAttribute",
     },
     thirdPartyData: {
       type: Object,
@@ -172,12 +213,15 @@ productSchema.statics.findWithAdjustedPrice = async function (
   const count = await this.countDocuments(params.query);
   const products = await this.find(params.query)
     .skip(params.skip)
-    .limit(params.limit)
-    .populate({
-      path: "inventory",
-      select: "totalStock reservedStock availableStock",
-    });
+    .limit(params.limit);
 
+  // const products = await this.find(params.query)
+  //   .skip(params.skip)
+  //   .limit(params.limit)
+  //   .populate({
+  //     path: "inventory",
+  //     select: "totalStock reservedStock availableStock",
+  //   });
   for (const product of products) {
     const price = await product.getAdjustedPrice(params.customer);
     product.adjustedPrice = price.prices;
@@ -188,10 +232,11 @@ productSchema.statics.findWithAdjustedPrice = async function (
 productSchema.statics.findOneWithAdjustedPrice = async function (
   params: IFindOneWithAdjustedPrice
 ) {
-  const product = await this.findOne(params.query).populate({
-    path: "inventory",
-    select: "totalStock reservedStock availableStock",
-  });
+  const product = await this.findOne(params.query);
+  //   const product = await this.findOne(params.query).populate({
+  //   path: "inventory",
+  //   select: "totalStock reservedStock availableStock",
+  // });
   const price = await product.getAdjustedPrice(params.customer);
   product.adjustedPrice = price.prices;
   return product;

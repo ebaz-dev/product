@@ -15,7 +15,7 @@ it("retrieves a product with the correct price based on merchantId", async () =>
     categoryId: new mongoose.Types.ObjectId().toHexString(),
     brandId: new mongoose.Types.ObjectId().toHexString(),
     description: "Description 2",
-    image: ["image2.jpg"],
+    images: ["image2.jpg"],
     attributes: ["attribute2"],
     thirdPartyData: { key: "value2" },
     inCase: 10,
@@ -72,10 +72,10 @@ it("retrieves a product with the correct price based on merchantId", async () =>
   expect(response.body.barCode).toEqual(product.barCode);
   expect(response.body.customerId).toEqual(product.customerId.toString());
   expect(response.body.vendorId).toEqual(product.vendorId?.toString());
-  expect(response.body.categoryId).toEqual(product.categoryId?.toString());
+  expect(response.body.categoryId).toEqual(product.categoryIds?.toString());
   expect(response.body.brandId).toEqual(product.brandId?.toString());
   expect(response.body.description).toEqual(product.description);
-  expect(response.body.image).toEqual(product.image);
+  expect(response.body.images).toEqual(product.images);
   expect(response.body.attributes).toEqual(product.attributes);
   expect(response.body.adjustedPrice.price).toEqual(150); // Custom price
   expect(response.body.adjustedPrice.cost).toEqual(20);
@@ -150,10 +150,10 @@ it("retrieves a product with the correct price based on categoryId", async () =>
   expect(response.body.barCode).toEqual(product.barCode);
   expect(response.body.customerId).toEqual(product.customerId.toString());
   expect(response.body.vendorId).toEqual(product.vendorId?.toString());
-  expect(response.body.categoryId).toEqual(product.categoryId?.toString());
+  expect(response.body.categoryId).toEqual(product.categoryIds?.toString());
   expect(response.body.brandId).toEqual(product.brandId?.toString());
   expect(response.body.description).toEqual(product.description);
-  expect(response.body.image).toEqual(product.image);
+  expect(response.body.images).toEqual(product.images);
   expect(response.body.attributes).toEqual(product.attributes);
   expect(response.body.adjustedPrice.price).toEqual(110); // Category price
   expect(response.body.adjustedPrice.cost).toEqual(20);
@@ -220,10 +220,10 @@ it("retrieves a product with the default price", async () => {
   expect(response.body.barCode).toEqual(product.barCode);
   expect(response.body.customerId).toEqual(product.customerId.toString());
   expect(response.body.vendorId).toEqual(product.vendorId?.toString());
-  expect(response.body.categoryId).toEqual(product.categoryId?.toString());
+  expect(response.body.categoryId).toEqual(product.categoryIds?.toString());
   expect(response.body.brandId).toEqual(product.brandId?.toString());
   expect(response.body.description).toEqual(product.description);
-  expect(response.body.image).toEqual(product.image);
+  expect(response.body.images).toEqual(product.images);
   expect(response.body.attributes).toEqual(product.attributes);
   expect(response.body.adjustedPrice.price).toEqual(100);
   expect(response.body.adjustedPrice.cost).toEqual(20);

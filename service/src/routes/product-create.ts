@@ -4,12 +4,24 @@ import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product } from "../shared/models/product";
 import { ProductPrice } from "../shared/models/price";
+import { ProductCategory } from "../shared/models/category";
 import slugify from "slugify";
 import mongoose from "mongoose";
 import { ProductCreatedPublisher } from "../events/publisher/product-created-publisher";
 import { natsWrapper } from "../nats-wrapper";
 
 const router = express.Router();
+
+const getParentCategoryIds = async (
+  categoryId: mongoose.Types.ObjectId
+): Promise<mongoose.Types.ObjectId[]> => {
+  const category = await ProductCategory.findById(categoryId);
+  if (!category || !category.parentId) {
+    return [categoryId];
+  }
+  const parentIds = await getParentCategoryIds(category.parentId);
+  return [categoryId, ...parentIds];
+};
 
 router.post(
   "/create",
@@ -35,12 +47,12 @@ router.post(
       .optional()
       .isString()
       .withMessage("Description must be a string"),
-    body("image")
+    body("images")
       .optional()
       .isArray()
       .withMessage("Image must be an array of strings")
       .custom((value) => value.every((img: any) => typeof img === "string"))
-      .withMessage("Each image must be a string"),
+      .withMessage("Each images must be a string"),
     body("attributes")
       .optional()
       .isArray()
@@ -72,7 +84,7 @@ router.post(
       categoryId,
       brandId,
       description,
-      image,
+      images,
       attributes,
       prices,
       inCase,
@@ -96,13 +108,21 @@ router.post(
         barCode,
         customerId,
         vendorId,
-        categoryId,
+        categoryIds: [],
         brandId,
         description,
-        image,
+        images,
         attributes,
         inCase,
       });
+
+      let categoryIds: mongoose.Types.ObjectId[] = [];
+      if (categoryId) {
+        categoryIds = await getParentCategoryIds(
+          new mongoose.Types.ObjectId(categoryId)
+        );
+        product.categoryIds = categoryIds;
+      }
 
       await product.save({ session });
 
@@ -115,9 +135,7 @@ router.post(
       });
 
       await productPrice.save({ session });
-
       product.prices.push(productPrice._id as mongoose.Types.ObjectId);
-
       await product.save({ session });
 
       await new ProductCreatedPublisher(natsWrapper.client).publish({
@@ -127,11 +145,13 @@ router.post(
         barCode: product.barCode,
         customerId: product.customerId.toString(),
         vendorId: product?.vendorId?.toString(),
-        categoryId: product?.categoryId?.toString(),
+        categoryIds: product?.categoryIds?.map((id: mongoose.Types.ObjectId) =>
+          id.toString()
+        ),
         brandId: product?.brandId?.toString(),
         description: product.description || "",
-        image: product.image || [],
-        attributes: product.attributes || [],
+        images: product.images || [],
+        attributes: product.attributes,
         prices: product.prices.map((price) => price.toString()),
         thirdPartyData: product.thirdPartyData || {},
         inCase: product.inCase,

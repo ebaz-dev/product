@@ -10,10 +10,10 @@ export interface ProductUpdatedEvent {
     barCode?: string;
     customerId?: Types.ObjectId;
     vendorId?: Types.ObjectId;
-    categoryId?: Types.ObjectId;
+    categoryIds?: Types.ObjectId[];
     brandId?: Types.ObjectId;
     description?: string;
-    image?: Array<string>;
+    images?: Array<string>;
     attributes?: Array<object>;
     prices?: Types.ObjectId[];
     thirdPartyData?: object;
