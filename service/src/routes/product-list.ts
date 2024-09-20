@@ -117,8 +117,8 @@ router.get(
       });
 
       res.status(StatusCodes.OK).send({
-        products,
-        totalProducts: total,
+        data: products,
+        total: total,
         totalPages: Math.ceil(total / limitNumber),
         currentPage: pageNumber,
       });

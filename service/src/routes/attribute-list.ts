@@ -55,7 +55,7 @@ router.get(
         .limit(limitNumber);
 
       res.status(StatusCodes.OK).send({
-        attributes,
+        data: attributes,
         total: total,
         totalPages: Math.ceil(total / limitNumber),
         currentPage: pageNumber,

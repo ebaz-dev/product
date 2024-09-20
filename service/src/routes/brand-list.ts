@@ -63,8 +63,8 @@ router.get(
         .limit(limitNumber);
 
       res.status(StatusCodes.OK).send({
-        brands,
-        totalProducts: total,
+        data: brands,
+        total: total,
         totalPages: Math.ceil(total / limitNumber),
         currentPage: pageNumber,
       });
