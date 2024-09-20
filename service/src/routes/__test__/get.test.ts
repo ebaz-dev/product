@@ -17,13 +17,21 @@ it("retrieves a product with the correct price based on merchantId", async () =>
     name: "Product 2",
     slug: "product-2",
     barCode: "654321",
+    sku: "SKU123",
     customerId: new mongoose.Types.ObjectId().toHexString(),
     vendorId: new mongoose.Types.ObjectId().toHexString(),
     categoryIds: [new mongoose.Types.ObjectId().toHexString()],
     brandId: new mongoose.Types.ObjectId().toHexString(),
     description: "Description 2",
     images: ["image2.jpg"],
-    attributes: [{ attributeId: new mongoose.Types.ObjectId().toHexString(), name: "value1", slug: "value1", value: "value1" }],
+    attributes: [
+      {
+        attributeId: new mongoose.Types.ObjectId().toHexString(),
+        name: "value1",
+        slug: "value1",
+        value: "value1",
+      },
+    ],
     thirdPartyData: { key: "value2" },
     inCase: 10,
   });
@@ -80,18 +88,22 @@ it("retrieves a product with the correct price based on merchantId", async () =>
   expect(response.body.customerId).toEqual(product.customerId.toString());
   expect(response.body.vendorId).toEqual(product.vendorId?.toString());
   if (product.categoryIds) {
-    expect(response.body.categoryIds).toEqual(product.categoryIds.map(id => id.toString()));
+    expect(response.body.categoryIds).toEqual(
+      product.categoryIds.map((id) => id.toString())
+    );
   }
   expect(response.body.brandId).toEqual(product.brandId?.toString());
   expect(response.body.description).toEqual(product.description);
   expect(response.body.images).toEqual(product.images);
   if (product.attributes) {
-    expect(response.body.attributes).toEqual(product.attributes.map(attr => ({
-      attributeId: attr.attributeId.toString(),
-      name: attr.name,
-      slug: attr.slug,
-      value: attr.value
-    })));
+    expect(response.body.attributes).toEqual(
+      product.attributes.map((attr) => ({
+        attributeId: attr.attributeId.toString(),
+        name: attr.name,
+        slug: attr.slug,
+        value: attr.value,
+      }))
+    );
   }
   // expect(response.body.adjustedPrice.price).toEqual(150); // Custom price
   // expect(response.body.adjustedPrice.cost).toEqual(20);

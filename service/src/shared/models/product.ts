@@ -75,6 +75,7 @@ interface ProductDoc extends Document {
   name: string;
   slug: string;
   barCode: string;
+  sku: string;
   customerId: Types.ObjectId;
   vendorId?: Types.ObjectId;
   categoryIds?: Types.ObjectId[];
@@ -118,6 +119,10 @@ const productSchema = new Schema<ProductDoc>(
       required: true,
     },
     barCode: {
+      type: String,
+      required: true,
+    },
+    sku: {
       type: String,
       required: true,
     },
@@ -211,17 +216,17 @@ productSchema.statics.findWithAdjustedPrice = async function (
   params: IfindWithAdjustedPrice
 ) {
   const count = await this.countDocuments(params.query);
-  const products = await this.find(params.query)
-    .skip(params.skip)
-    .limit(params.limit);
-
   // const products = await this.find(params.query)
   //   .skip(params.skip)
-  //   .limit(params.limit)
-  //   .populate({
-  //     path: "inventory",
-  //     select: "totalStock reservedStock availableStock",
-  //   });
+  //   .limit(params.limit);
+
+  const products = await this.find(params.query)
+    .skip(params.skip)
+    .limit(params.limit)
+    .populate({
+      path: "inventory",
+      select: "totalStock reservedStock availableStock",
+    });
   for (const product of products) {
     const price = await product.getAdjustedPrice(params.customer);
     product.adjustedPrice = price.prices;
@@ -232,11 +237,11 @@ productSchema.statics.findWithAdjustedPrice = async function (
 productSchema.statics.findOneWithAdjustedPrice = async function (
   params: IFindOneWithAdjustedPrice
 ) {
-  const product = await this.findOne(params.query);
-  //   const product = await this.findOne(params.query).populate({
-  //   path: "inventory",
-  //   select: "totalStock reservedStock availableStock",
-  // });
+  // const product = await this.findOne(params.query);
+  const product = await this.findOne(params.query).populate({
+    path: "inventory",
+    select: "totalStock reservedStock availableStock",
+  });
   const price = await product.getAdjustedPrice(params.customer);
   product.adjustedPrice = price.prices;
   return product;
