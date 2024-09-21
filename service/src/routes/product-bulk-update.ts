@@ -9,7 +9,7 @@ import slugify from "slugify";
 const router = express.Router();
 
 router.put(
-  "/bulk-update",
+  "/bulk",
   [
     body().isArray().withMessage("Request body must be an array"),
     body("*.id")
@@ -109,11 +109,13 @@ router.put(
         throw new BadRequestError(`Validation Error: ${messages.join(", ")}`);
       }
 
-      throw new BadRequestError("Bulk update operation failed");
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+        message: "Something went wrong.",
+      });
     } finally {
       session.endSession();
     }
   }
 );
 
-export { router as bulkUpdateRouter };
+export { router as productBulkUpdateRouter };

@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 const router = express.Router();
 
 router.get(
-  "/attribute/list",
+  "/attributes",
   [
     query("ids")
       .optional()
@@ -26,8 +26,8 @@ router.get(
       .withMessage("Page must be a positive integer"),
     query("limit")
       .optional()
-      .isInt({ min: 1 })
-      .withMessage("Limit must be a positive integer"),
+      .custom((value) => value === "all" || parseInt(value, 10) > 0)
+      .withMessage("Limit must be a positive integer or 'all'"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
@@ -47,24 +47,31 @@ router.get(
       }
 
       const pageNumber = Number(page);
-      const limitNumber = Number(limit);
+      const limitNumber = limit === "all" ? 0 : Number(limit);
+      const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
 
-      const total = await ProductAttribute.countDocuments(filter);
       const attributes = await ProductAttribute.find(filter)
-        .skip((pageNumber - 1) * limitNumber)
+        .skip(skip)
         .limit(limitNumber);
+
+      const total =
+        limit === "all"
+          ? attributes.length
+          : await ProductAttribute.countDocuments(filter);
 
       res.status(StatusCodes.OK).send({
         data: attributes,
         total: total,
-        totalPages: Math.ceil(total / limitNumber),
-        currentPage: pageNumber,
+        totalPages: limit === "all" ? 1 : Math.ceil(total / limitNumber),
+        currentPage: limit === "all" ? 1 : pageNumber,
       });
     } catch (error: any) {
       console.error("Error fetching attributes:", error);
-      throw new BadRequestError("Error fetching attributes");
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+        message: "Something went wrong.",
+      });
     }
   }
 );
 
-export { router as attributeListRouter };
+export { router as attributesRouter };

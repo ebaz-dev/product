@@ -24,7 +24,7 @@ const getParentCategoryIds = async (
 };
 
 router.post(
-  "/create",
+  "",
   [
     body("name").isString().notEmpty().withMessage("Name is required"),
     body("barCode").isString().notEmpty().withMessage("Bar code is required"),
@@ -73,6 +73,9 @@ router.post(
     body("inCase")
       .isFloat({ min: 0 })
       .withMessage("In case must be a non-negative number"),
+    body("*.isActive").isBoolean().withMessage("isActive must be a boolean"),
+    body("*.isAlcohol").isBoolean().withMessage("isAlcohol must be a boolean"),
+    body("*.cityTax").isBoolean().withMessage("cityTax must be a boolean"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
@@ -88,6 +91,9 @@ router.post(
       attributes,
       prices,
       inCase,
+      isActive,
+      isAlcohol,
+      cityTax,
     } = req.body;
 
     const existingProduct = await Product.findOne({ barCode });
@@ -114,6 +120,9 @@ router.post(
         images,
         attributes,
         inCase,
+        isActive,
+        isAlcohol,
+        cityTax,
       });
 
       let categoryIds: mongoose.Types.ObjectId[] = [];
@@ -155,6 +164,9 @@ router.post(
         prices: product.prices.map((price) => price.toString()),
         thirdPartyData: product.thirdPartyData || {},
         inCase: product.inCase,
+        isActive: product.isActive,
+        isAlcohol: product.isAlcohol ?? false,
+        cityTax: product.cityTax ?? false,
       });
 
       await session.commitTransaction();
@@ -176,11 +188,13 @@ router.post(
         throw new BadRequestError(`Validation Error: ${messages.join(", ")}`);
       }
 
-      throw new BadRequestError("Error creating product");
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+        message: "Something went wrong.",
+      });
     } finally {
       session.endSession();
     }
   }
 );
 
-export { router as createRouter };
+export { router as productCreateRouter };

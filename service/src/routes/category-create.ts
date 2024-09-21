@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
-import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
+import { validateRequest, BadRequestError } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { ProductCategory } from "../shared/models/category";
 import slugify from "slugify";
@@ -52,7 +52,9 @@ router.post(
         throw new BadRequestError(`Validation Error: ${messages.join(", ")}`);
       }
 
-      throw new BadRequestError("Error creating category");
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+        message: "Something went wrong.",
+      });
     }
   }
 );

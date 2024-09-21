@@ -9,7 +9,7 @@ import { validatePriceType } from "../utils/price-validation";
 const router = express.Router();
 
 router.put(
-  "/price-update/:id",
+  "/price/:id",
   [
     param("id")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))

@@ -12,7 +12,7 @@ import { natsWrapper } from "../nats-wrapper";
 const router = express.Router();
 
 router.post(
-  "/bulk-create",
+  "/bulk",
   [
     body().isArray().withMessage("Request body must be an array"),
     body("*.name").isString().notEmpty().withMessage("Name is required"),
@@ -161,11 +161,13 @@ router.post(
         throw new BadRequestError(`Validation Error: ${messages.join(", ")}`);
       }
 
-      throw new BadRequestError("Bulk write operation failed");
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+        message: "Something went wrong.",
+      });
     } finally {
       session.endSession();
     }
   }
 );
 
-export { router as bulkCreateRouter };
+export { router as productBulkCreateRouter };

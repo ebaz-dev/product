@@ -10,7 +10,7 @@ import { validatePriceType } from "../utils/price-validation";
 const router = express.Router();
 
 router.post(
-  "/price-create",
+  "/price",
   [
     body("productId")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
@@ -70,7 +70,9 @@ router.post(
         throw new BadRequestError(`Validation Error: ${messages.join(", ")}`);
       }
 
-      throw new BadRequestError("Error saving product price");
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+        message: "Something went wrong.",
+      });
     }
   }
 );

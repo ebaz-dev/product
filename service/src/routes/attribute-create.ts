@@ -1,19 +1,21 @@
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
-import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
+import { validateRequest, BadRequestError } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { ProductAttribute } from "../shared/models/attribute";
 import slugify from "slugify";
-import mongoose from "mongoose";
 
 const router = express.Router();
 
 router.post(
   "/attribute",
-  [body("name").isString().notEmpty().withMessage("Name is required")],
+  [
+    body("name").isString().notEmpty().withMessage("Name is required"),
+    body("key").isString().notEmpty().withMessage("Key is required"),
+  ],
   validateRequest,
   async (req: Request, res: Response) => {
-    const { name } = req.body;
+    const { name, key } = req.body;
 
     const existingAttribute = await ProductAttribute.findOne({ name });
 
@@ -27,6 +29,7 @@ router.post(
       const attribute = new ProductAttribute({
         name,
         slug,
+        key,
       });
 
       await attribute.save();
@@ -42,9 +45,11 @@ router.post(
         throw new BadRequestError(`Validation Error: ${messages.join(", ")}`);
       }
 
-      throw new BadRequestError("Error creating attribute");
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+        message: "Something went wrong",
+      });
     }
   }
 );
 
-export { router as createAttributeRouter };
+export { router as attributeCreateRouter };

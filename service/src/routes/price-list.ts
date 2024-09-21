@@ -1,14 +1,14 @@
 import express, { Request, Response } from "express";
 import { query } from "express-validator";
-import { Brand } from "../shared/models/brand";
+import { validateRequest } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
-import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
-import mongoose from "mongoose";
+import { ProductPrice, ProductPriceDoc } from "../shared/models/price";
+import mongoose, { FilterQuery } from "mongoose";
 
 const router = express.Router();
 
 router.get(
-  "/brands",
+  "/prices",
   [
     query("ids")
       .optional()
@@ -19,11 +19,16 @@ router.get(
         );
       })
       .withMessage("IDs must be a comma-separated list of valid ObjectIds"),
-    query("name").optional().isString().withMessage("Name must be a string"),
-    query("customerId")
+    query("productId")
       .optional()
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
-      .withMessage("Customer ID must be a valid ObjectId"),
+      .withMessage("Product ID must be a valid ObjectId"),
+    query("type").optional().isString().withMessage("Type must be a string"),
+    query("level").optional().isInt().withMessage("Level must be an integer"),
+    query("entityReference")
+      .optional()
+      .isString()
+      .withMessage("Entity reference must be a string"),
     query("page")
       .optional()
       .isInt({ min: 1 })
@@ -36,41 +41,49 @@ router.get(
   validateRequest,
   async (req: Request, res: Response) => {
     try {
-      const { ids, name, customerId, page = 1, limit = 10 } = req.query;
+      const {
+        ids,
+        productId,
+        type,
+        level,
+        entityReference,
+        page = 1,
+        limit = 20,
+      } = req.query;
 
-      const filter: any = {};
+      const query: FilterQuery<ProductPriceDoc> = {};
+
+      if (productId) query.productId = productId;
+      if (type) query.type = type;
+      if (level) query.level = level;
+      if (entityReference) query.entityReferences = { $in: [entityReference] };
 
       if (ids) {
         const idsArray = (ids as string).split(",").map((id) => id.trim());
-        filter._id = { $in: idsArray };
+        query._id = { $in: idsArray };
       }
 
-      if (name) {
-        const regex = new RegExp(name as string, "i");
-        filter.$or = [{ name: { $regex: regex } }, { slug: { $regex: regex } }];
-      }
-
-      if (customerId) {
-        filter.customerId = customerId;
-      }
-
-      const pageNumber = Number(page);
-      const limitNumber = limit === "all" ? 0 : Number(limit);
+      const pageNumber = parseInt(page as string, 10);
+      const limitNumber = limit === "all" ? 0 : parseInt(limit as string, 10);
       const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
 
-      const brands = await Brand.find(filter).skip(skip).limit(limitNumber);
+      const prices = await ProductPrice.find(query)
+        .skip(skip)
+        .limit(limitNumber);
 
       const total =
-        limit === "all" ? brands.length : await Brand.countDocuments(filter);
+        limit === "all"
+          ? prices.length
+          : await ProductPrice.countDocuments(query);
 
       res.status(StatusCodes.OK).send({
-        data: brands,
+        data: prices,
         total: total,
         totalPages: limit === "all" ? 1 : Math.ceil(total / limitNumber),
         currentPage: limit === "all" ? 1 : pageNumber,
       });
-    } catch (error: any) {
-      console.error("Error fetching brands:", error);
+    } catch (error) {
+      console.error("Error fetching price list:", error);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
         message: "Something went wrong.",
       });
@@ -78,4 +91,4 @@ router.get(
   }
 );
 
-export { router as brandsRouter };
+export { router as pricesRouter };

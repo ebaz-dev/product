@@ -1,8 +1,10 @@
 import { Document, Schema, model, Types, Model, FilterQuery } from "mongoose";
 import { updateIfCurrentPlugin } from "mongoose-update-if-current";
+import { NotFoundError } from "@ebazdev/core";
 import { ProductPrice, Price } from "./price";
 import { Inventory } from "@ebazdev/inventory";
 import { Brand } from "./brand";
+import { ProductCategory } from "./category";
 
 interface AdjustedPrice {
   prices: Types.ObjectId;
@@ -32,6 +34,13 @@ interface Brand {
   slug: string;
   customerId: Types.ObjectId;
   image: string;
+}
+
+interface ProductCategory {
+  id: Types.ObjectId;
+  name: string;
+  slug: string;
+  customerId: Types.ObjectId;
 }
 
 interface Inventory {
@@ -79,6 +88,7 @@ interface ProductDoc extends Document {
   customerId: Types.ObjectId;
   vendorId?: Types.ObjectId;
   categoryIds?: Types.ObjectId[];
+  categories?: ProductCategory[];
   brandId?: Types.ObjectId;
   brand?: Brand;
   description?: string;
@@ -91,6 +101,9 @@ interface ProductDoc extends Document {
   inCase: number;
   inventoryId: Types.ObjectId;
   iventory?: Inventory;
+  isActive: boolean;
+  isAlcohol?: boolean;
+  cityTax?: boolean;
 }
 
 interface ProductModel extends Model<ProductDoc> {
@@ -177,6 +190,19 @@ const productSchema = new Schema<ProductDoc>(
       required: false,
       ref: "Inventory",
     },
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
+    isAlcohol: {
+      type: Boolean,
+      required: true,
+    },
+    cityTax: {
+      type: Boolean,
+      required: true,
+    },
   },
   {
     toJSON: {
@@ -201,6 +227,19 @@ productSchema.virtual("inventory", {
   justOne: true,
 });
 
+productSchema.virtual("brand", {
+  ref: "Brand",
+  localField: "brandId",
+  foreignField: "_id",
+  justOne: true,
+});
+
+productSchema.virtual("categories", {
+  ref: "ProductCategory",
+  localField: "categoryIds",
+  foreignField: "_id",
+});
+
 productSchema.plugin(updateIfCurrentPlugin);
 
 productSchema
@@ -216,34 +255,54 @@ productSchema.statics.findWithAdjustedPrice = async function (
   params: IfindWithAdjustedPrice
 ) {
   const count = await this.countDocuments(params.query);
-  // const products = await this.find(params.query)
-  //   .skip(params.skip)
-  //   .limit(params.limit);
-
   const products = await this.find(params.query)
     .skip(params.skip)
     .limit(params.limit)
     .populate({
       path: "inventory",
       select: "totalStock reservedStock availableStock",
+    })
+    .populate({
+      path: "brand",
+      select: "name slug customerId image",
+    })
+    .populate({
+      path: "categories",
+      select: "name slug",
     });
+
   for (const product of products) {
     const price = await product.getAdjustedPrice(params.customer);
     product.adjustedPrice = price.prices;
   }
+
   return { products, count };
 };
 
 productSchema.statics.findOneWithAdjustedPrice = async function (
   params: IFindOneWithAdjustedPrice
 ) {
-  // const product = await this.findOne(params.query);
-  const product = await this.findOne(params.query).populate({
-    path: "inventory",
-    select: "totalStock reservedStock availableStock",
-  });
+  const product = await this.findOne(params.query)
+    .populate({
+      path: "inventory",
+      select: "totalStock reservedStock availableStock",
+    })
+    .populate({
+      path: "brand",
+      select: "name slug customerId image",
+    })
+    .populate({
+      path: "categories",
+      select: "name slug",
+    });
+
+  if (!product) {
+    throw new NotFoundError();
+  }
+
   const price = await product.getAdjustedPrice(params.customer);
   product.adjustedPrice = price.prices;
+
   return product;
 };
 
@@ -252,6 +311,7 @@ productSchema.methods.getAdjustedPrice = async function (externalData: {
   categoryId?: Types.ObjectId;
 }) {
   const productPrices = await ProductPrice.find({ productId: this._id });
+
   productPrices.sort((a, b) => b.level - a.level);
 
   let selectedPrice = productPrices[0];
@@ -275,6 +335,7 @@ productSchema.methods.getAdjustedPrice = async function (externalData: {
       break;
     }
   }
+
   const priceData = {
     price: selectedPrice.prices.price,
     cost: selectedPrice.prices.cost,

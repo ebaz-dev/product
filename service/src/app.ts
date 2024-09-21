@@ -2,20 +2,22 @@ import express from "express";
 import "express-async-errors";
 import { json } from "body-parser";
 import { NotFoundError, errorHandler } from "@ebazdev/core";
-import { createRouter } from "./routes/product-create";
-import { bulkCreateRouter } from "./routes/product-bulk-create";
-import { getRouter } from "./routes/product-get";
-import { listRouter } from "./routes/product-list";
-import { updateRouter } from "./routes/product-update";
-import { bulkUpdateRouter } from "./routes/product-bulk-update";
+import { productCreateRouter } from "./routes/product-create";
+import { productBulkCreateRouter } from "./routes/product-bulk-create";
+import { productGetRouter } from "./routes/product-get";
+import { productListRouter } from "./routes/product-list";
+import { productUpdateRouter } from "./routes/product-update";
+import { productBulkUpdateRouter } from "./routes/product-bulk-update";
 import { priceCreateRouter } from "./routes/price-create";
+import { priceRouter } from "./routes/price-get";
+import { pricesRouter } from "./routes/price-list";
 import { priceUpdateRouter } from "./routes/price-update";
-import { createAttributeRouter } from "./routes/attribute-create";
-import { attributeListRouter } from "./routes/attribute-list";
-import { createBrandRouter } from "./routes/brand-create";
-import { brandListRouter } from "./routes/brand-list";
+import { attributeCreateRouter } from "./routes/attribute-create";
+import { attributesRouter } from "./routes/attribute-list";
+import { brandCreateRouter } from "./routes/brand-create";
+import { brandsRouter } from "./routes/brand-list";
 import { createCategoryRouter } from "./routes/category-create";
-import { categoryListRouter } from "./routes/category-list";
+import { categoriesRouter } from "./routes/category-list";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 
@@ -33,20 +35,31 @@ app.use(
   })
 );
 
-app.use(apiPrefix, createRouter);
-app.use(apiPrefix, bulkCreateRouter);
-app.use(apiPrefix, listRouter);
-app.use(apiPrefix, getRouter);
-app.use(apiPrefix, updateRouter);
-app.use(apiPrefix, bulkUpdateRouter);
+// Price routes
+app.use(apiPrefix, pricesRouter);
+app.use(apiPrefix, priceRouter);
 app.use(apiPrefix, priceCreateRouter);
 app.use(apiPrefix, priceUpdateRouter);
-app.use(apiPrefix, createAttributeRouter);
-app.use(apiPrefix, attributeListRouter);
-app.use(apiPrefix, createBrandRouter);
-app.use(apiPrefix, brandListRouter);
+
+// Attribute routes
+app.use(apiPrefix, attributeCreateRouter);
+app.use(apiPrefix, attributesRouter);
+
+// Brand routes
+app.use(apiPrefix, brandCreateRouter);
+app.use(apiPrefix, brandsRouter);
+
+// Category routes
 app.use(apiPrefix, createCategoryRouter);
-app.use(apiPrefix, categoryListRouter);
+app.use(apiPrefix, categoriesRouter);
+
+// Product routes
+app.use(apiPrefix, productBulkCreateRouter);
+app.use(apiPrefix, productCreateRouter);
+app.use(`${apiPrefix}s`, productListRouter);
+app.use(apiPrefix, productGetRouter);
+app.use(apiPrefix, productBulkUpdateRouter);
+app.use(apiPrefix, productUpdateRouter);
 
 app.all("*", async () => {
   throw new NotFoundError();

@@ -39,4 +39,4 @@ router.get(
   }
 );
 
-export { router as getRouter };
+export { router as productGetRouter };

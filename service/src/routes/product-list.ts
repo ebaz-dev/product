@@ -8,7 +8,7 @@ import mongoose, { FilterQuery } from "mongoose";
 const router = express.Router();
 
 router.get(
-  "/list",
+  "",
   [
     query("ids")
       .optional()
@@ -51,8 +51,8 @@ router.get(
       .withMessage("Page must be a positive integer"),
     query("limit")
       .optional()
-      .isInt({ min: 1 })
-      .withMessage("Limit must be a positive integer"),
+      .custom((value) => value === "all" || parseInt(value, 10) > 0)
+      .withMessage("Limit must be a positive integer or 'all'"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
@@ -106,8 +106,8 @@ router.get(
       }
 
       const pageNumber = parseInt(page as string, 10);
-      const limitNumber = parseInt(limit as string, 10);
-      const skip = (pageNumber - 1) * limitNumber;
+      const limitNumber = limit === "all" ? 0 : parseInt(limit as string, 10);
+      const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
 
       const { products, count: total } = await Product.findWithAdjustedPrice({
         query,
@@ -119,16 +119,16 @@ router.get(
       res.status(StatusCodes.OK).send({
         data: products,
         total: total,
-        totalPages: Math.ceil(total / limitNumber),
-        currentPage: pageNumber,
+        totalPages: limit === "all" ? 1 : Math.ceil(total / limitNumber),
+        currentPage: limit === "all" ? 1 : pageNumber,
       });
     } catch (error) {
       console.error(error);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-        message: "An error occurred while fetching the product list.",
+        message: "Something went wrong.",
       });
     }
   }
 );
 
-export { router as listRouter };
+export { router as productListRouter };
