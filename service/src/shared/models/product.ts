@@ -15,6 +15,7 @@ export interface IfindWithAdjustedPrice {
   customer: object;
   skip: number;
   limit: number;
+  sort: { [key: string]: 1 | -1 };
 }
 
 export interface IFindOneWithAdjustedPrice {
@@ -51,15 +52,16 @@ interface Inventory {
 }
 
 interface Attribute {
-  attributeId: Types.ObjectId;
+  id: Types.ObjectId;
   name: string;
   slug: string;
-  value: string;
+  key: string;
+  value: number | string;
 }
 
 const attributeSchema = new Schema<Attribute>(
   {
-    attributeId: {
+    id: {
       type: Schema.Types.ObjectId,
       required: true,
     },
@@ -71,8 +73,12 @@ const attributeSchema = new Schema<Attribute>(
       type: String,
       required: true,
     },
-    value: {
+    key: {
       type: String,
+      required: true,
+    },
+    value: {
+      type: Schema.Types.Mixed,
       required: true,
     },
   },
@@ -104,6 +110,7 @@ interface ProductDoc extends Document {
   isActive: boolean;
   isAlcohol?: boolean;
   cityTax?: boolean;
+  priority: number;
 }
 
 interface ProductModel extends Model<ProductDoc> {
@@ -203,6 +210,11 @@ const productSchema = new Schema<ProductDoc>(
       type: Boolean,
       required: true,
     },
+    priority: {
+      type: Number,
+      required: true,
+      unique: true,
+    },
   },
   {
     toJSON: {
@@ -258,6 +270,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
   const products = await this.find(params.query)
     .skip(params.skip)
     .limit(params.limit)
+    .sort(params.sort)
     .populate({
       path: "inventory",
       select: "totalStock reservedStock availableStock",

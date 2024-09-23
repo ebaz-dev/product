@@ -73,9 +73,21 @@ router.post(
     body("inCase")
       .isFloat({ min: 0 })
       .withMessage("In case must be a non-negative number"),
-    body("*.isActive").isBoolean().withMessage("isActive must be a boolean"),
-    body("*.isAlcohol").isBoolean().withMessage("isAlcohol must be a boolean"),
-    body("*.cityTax").isBoolean().withMessage("cityTax must be a boolean"),
+    body("isActive")
+      .isBoolean()
+      .withMessage("isActive must be a boolean")
+      .notEmpty()
+      .withMessage("isActive is required"),
+    body("isAlcohol")
+      .isBoolean()
+      .withMessage("isAlcohol must be a boolean")
+      .notEmpty()
+      .withMessage("isAlcohol is required"),
+    body("cityTax")
+      .isBoolean()
+      .withMessage("cityTax must be a boolean")
+      .notEmpty()
+      .withMessage("cityTax is required"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {

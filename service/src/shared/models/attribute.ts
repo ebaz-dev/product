@@ -6,6 +6,7 @@ interface ProductAttribute extends Document {
   name: string;
   slug: string;
   key: string;
+  value: number | string;
 }
 
 interface ProductAttributeBrandModel extends Model<ProductAttribute> {}
@@ -22,6 +23,10 @@ const ProductAttributeSchema = new Schema<ProductAttribute>(
     },
     key: {
       type: String,
+      required: true,
+    },
+    value: {
+      type: Schema.Types.Mixed,
       required: true,
     },
   },

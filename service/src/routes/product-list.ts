@@ -6,6 +6,14 @@ import { Product, ProductDoc } from "../shared/models/product";
 import mongoose, { FilterQuery } from "mongoose";
 
 const router = express.Router();
+const validOrderByFields = [
+  "priority",
+  "favourite",
+  "discount",
+  "promotion",
+  "sizeIncreased",
+  "sizeDecreased",
+];
 
 router.get(
   "/list",
@@ -41,7 +49,9 @@ router.get(
           mongoose.Types.ObjectId.isValid(id)
         );
       })
-      .withMessage("Category IDs must be a comma-separated list of valid ObjectIds"),
+      .withMessage(
+        "Category IDs must be a comma-separated list of valid ObjectIds"
+      ),
     query("brands")
       .optional()
       .custom((value) => {
@@ -50,11 +60,20 @@ router.get(
           mongoose.Types.ObjectId.isValid(id)
         );
       })
-      .withMessage("Brand IDs must be a comma-separated list of valid ObjectIds"),
+      .withMessage(
+        "Brand IDs must be a comma-separated list of valid ObjectIds"
+      ),
     query("attributeValues")
       .optional()
-      .isString()
-      .withMessage("Attribute value must be a string"),
+      .custom((value) => {
+        const valuesArray = value.split(",").map((val: string) => val.trim());
+        return valuesArray.every(
+          (val: string) => !isNaN(Number(val)) || typeof val === "string"
+        );
+      })
+      .withMessage(
+        "Attribute values must be a comma-separated list of strings or numbers"
+      ),
     query("page")
       .optional()
       .isInt({ min: 1 })
@@ -63,6 +82,13 @@ router.get(
       .optional()
       .custom((value) => value === "all" || parseInt(value, 10) > 0)
       .withMessage("Limit must be a positive integer or 'all'"),
+    query("orderBy")
+      .optional()
+      .isString()
+      .custom((value) => validOrderByFields.includes(value.split(":")[0]))
+      .withMessage(
+        "Order by must be one of the following: priority,favourite ,discount ,promotion ,sizeIncreased, sizeDecreased"
+      ),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
@@ -80,6 +106,7 @@ router.get(
         inCase,
         page = 1,
         limit = 20,
+        orderBy,
       } = req.query;
 
       const query: FilterQuery<ProductDoc> = {};
@@ -103,33 +130,59 @@ router.get(
       }
 
       if (attributeValues) {
-        const attributeValuesArray = (attributeValues as string).split(",").map((val) => val.trim());
+        const attributeValuesArray = (attributeValues as string)
+          .split(",")
+          .map((val) => val.trim());
         query.attributes = {
           $elemMatch: {
-            value: { $in: attributeValuesArray },
+            value: {
+              $in: attributeValuesArray.map((val) =>
+                isNaN(Number(val)) ? val : Number(val)
+              ),
+            },
           },
         };
       }
 
       if (categories) {
-        const categoryIdsArray = (categories as string).split(",").map((id) => id.trim());
+        const categoryIdsArray = (categories as string)
+          .split(",")
+          .map((id) => id.trim());
         query.categoryIds = { $in: categoryIdsArray };
       }
 
       if (brands) {
-        const brandIdsArray = (brands as string).split(",").map((id) => id.trim());
+        const brandIdsArray = (brands as string)
+          .split(",")
+          .map((id) => id.trim());
         query.brandId = { $in: brandIdsArray };
       }
-      
+
       const pageNumber = parseInt(page as string, 10);
       const limitNumber = limit === "all" ? 0 : parseInt(limit as string, 10);
       const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
+
+      const sort: { [key: string]: 1 | -1 } = {};
+      if (orderBy) {
+        const [key, order] = (orderBy as string).split(":");
+        if (validOrderByFields.includes(key)) {
+          if (key === "sizeIncreased" || key === "sizeDecreased") {
+            const sizeOrder = key === "sizeIncreased" ? 1 : -1;
+            sort[`attributes.value`] = sizeOrder;
+          } else {
+            sort[key] = order === "desc" ? -1 : 1;
+          }
+        }
+      } else {
+        sort.priority = 1;
+      }
 
       const { products, count: total } = await Product.findWithAdjustedPrice({
         query,
         customer: { customerId: customerId },
         skip,
         limit: limitNumber,
+        sort,
       });
 
       res.status(StatusCodes.OK).send({
