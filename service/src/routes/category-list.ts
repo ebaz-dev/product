@@ -53,7 +53,7 @@ router.get(
       if (customerId) {
         filter.customerId = customerId;
       }
-
+      console.log('test');
       const pageNumber = Number(page);
       const limitNumber = limit === "all" ? 0 : Number(limit);
       const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
