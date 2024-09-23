@@ -108,8 +108,9 @@ router.get(
         limit = 20,
         orderBy,
       } = req.query;
-
+      
       const query: FilterQuery<ProductDoc> = {};
+      
       if (name) query.name = { $regex: name, $options: "i" };
       if (barCode) query.barCode = { $regex: barCode, $options: "i" };
       if (sku) query.sku = { $regex: sku, $options: "i" };
