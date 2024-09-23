@@ -29,7 +29,9 @@ router.post(
     body("name").isString().notEmpty().withMessage("Name is required"),
     body("barCode").isString().notEmpty().withMessage("Bar code is required"),
     body("sku").isString().notEmpty().withMessage("SKU is required"),
-    body("priority").isInt({ min: 0 }).withMessage("Priority must be a non-negative integer"),
+    body("priority")
+      .isInt({ min: 0 })
+      .withMessage("Priority must be a non-negative integer"),
     body("customerId")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Customer ID must be a valid ObjectId"),
@@ -121,7 +123,7 @@ router.post(
       isAlcohol,
       cityTax,
       sku,
-      priority
+      priority,
     } = req.body;
 
     const existingProduct = await Product.findOne({ barCode });
@@ -152,7 +154,7 @@ router.post(
         isAlcohol,
         cityTax,
         sku,
-        priority
+        priority,
       });
 
       let categoryIds: mongoose.Types.ObjectId[] = [];

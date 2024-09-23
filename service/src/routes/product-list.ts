@@ -3,6 +3,7 @@ import { query } from "express-validator";
 import { validateRequest } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product, ProductDoc } from "../shared/models/product";
+import { Merchant } from "@ebazdev/customer";
 import mongoose, { FilterQuery } from "mongoose";
 
 const router = express.Router();
@@ -18,6 +19,10 @@ const validOrderByFields = [
 router.get(
   "/list",
   [
+    query("merchantId")
+      .optional()
+      .custom((value) => mongoose.Types.ObjectId.isValid(value))
+      .withMessage("Merchant ID must be a valid ObjectId"),
     query("ids")
       .optional()
       .custom((value) => {
@@ -35,8 +40,8 @@ router.get(
     query("sku").optional().isString().withMessage("SKU must be a string"),
     query("customerId")
       .optional()
-      .custom((value) => mongoose.Types.ObjectId.isValid(value))
-      .withMessage("Customer ID must be a valid ObjectId"),
+      .custom((value) => value === "" || mongoose.Types.ObjectId.isValid(value))
+      .withMessage("Customer ID must be a valid ObjectId or an empty string"),
     query("vendorId")
       .optional()
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
@@ -94,6 +99,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const {
+        merchantId,
         ids,
         name,
         barCode,
@@ -108,13 +114,19 @@ router.get(
         limit = 20,
         orderBy,
       } = req.query;
-      
+
       const query: FilterQuery<ProductDoc> = {};
-      
+
       if (name) query.name = { $regex: name, $options: "i" };
       if (barCode) query.barCode = { $regex: barCode, $options: "i" };
       if (sku) query.sku = { $regex: sku, $options: "i" };
-      if (customerId) query.customerId = customerId;
+      if (
+        customerId &&
+        typeof customerId === "string" &&
+        customerId.length > 0
+      ) {
+        query.customerId = customerId;
+      }
       if (vendorId) query.vendorId = vendorId;
       if (inCase) query.inCase = inCase;
 
@@ -178,9 +190,15 @@ router.get(
         sort.priority = 1;
       }
 
+      const merchant = await Merchant.findById(merchantId as string);
+
+      const businessTypeId = new mongoose.Types.ObjectId();
       const { products, count: total } = await Product.findWithAdjustedPrice({
         query,
-        customer: { customerId: customerId },
+        merchant: {
+          merchantId: new mongoose.Types.ObjectId(merchantId as string),
+          businessTypeId: businessTypeId,
+        },
         skip,
         limit: limitNumber,
         sort,

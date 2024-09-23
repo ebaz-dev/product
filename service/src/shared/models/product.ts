@@ -10,9 +10,14 @@ interface AdjustedPrice {
   prices: Types.ObjectId;
 }
 
+interface Merchant {
+  merchantId: Types.ObjectId;
+  businessTypeId: Types.ObjectId;
+}
+
 export interface IfindWithAdjustedPrice {
   query: FilterQuery<ProductDoc>;
-  customer: object;
+  merchant: Merchant;
   skip: number;
   limit: number;
   sort: { [key: string]: 1 | -1 };
@@ -20,7 +25,7 @@ export interface IfindWithAdjustedPrice {
 
 export interface IFindOneWithAdjustedPrice {
   query: { _id: Types.ObjectId };
-  customer: { customerId: Types.ObjectId; merchantId?: Types.ObjectId };
+  merchant: Merchant;
 }
 export interface IReturnFindWithAdjustedPrice {
   products: ProductDoc[];
@@ -285,7 +290,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
     });
 
   for (const product of products) {
-    const price = await product.getAdjustedPrice(params.customer);
+    const price = await product.getAdjustedPrice(params.merchant);
     product.adjustedPrice = price.prices;
   }
 
@@ -313,15 +318,15 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     throw new NotFoundError();
   }
 
-  const price = await product.getAdjustedPrice(params.customer);
+  const price = await product.getAdjustedPrice(params.merchant);
   product.adjustedPrice = price.prices;
 
   return product;
 };
 
 productSchema.methods.getAdjustedPrice = async function (externalData: {
-  customerId: Types.ObjectId;
-  categoryId?: Types.ObjectId;
+  merchantId: Types.ObjectId;
+  businessTypeId?: Types.ObjectId;
 }) {
   const productPrices = await ProductPrice.find({ productId: this._id });
 
@@ -332,8 +337,8 @@ productSchema.methods.getAdjustedPrice = async function (externalData: {
   for (const price of productPrices) {
     if (
       price.type === "custom" &&
-      externalData.customerId &&
-      price.entityReferences.includes(externalData.customerId.toString())
+      externalData.merchantId &&
+      price.entityReferences.includes(externalData.merchantId.toString())
     ) {
       selectedPrice = price;
       break;
@@ -341,8 +346,8 @@ productSchema.methods.getAdjustedPrice = async function (externalData: {
 
     if (
       price.type === "category" &&
-      externalData.categoryId &&
-      price.entityReferences.includes(externalData.categoryId.toString())
+      externalData.businessTypeId &&
+      price.entityReferences.includes(externalData.businessTypeId.toString())
     ) {
       selectedPrice = price;
       break;

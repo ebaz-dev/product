@@ -23,7 +23,7 @@ const getParentCategoryIds = async (
 };
 
 router.put(
-  "/:id",
+  "/update/:id",
   [
     param("id")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
