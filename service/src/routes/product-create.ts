@@ -24,10 +24,12 @@ const getParentCategoryIds = async (
 };
 
 router.post(
-  "",
+  "/create",
   [
     body("name").isString().notEmpty().withMessage("Name is required"),
     body("barCode").isString().notEmpty().withMessage("Bar code is required"),
+    body("sku").isString().notEmpty().withMessage("SKU is required"),
+    body("priority").isInt({ min: 0 }).withMessage("Priority must be a non-negative integer"),
     body("customerId")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Customer ID must be a valid ObjectId"),
@@ -57,8 +59,20 @@ router.post(
       .optional()
       .isArray()
       .withMessage("Attributes must be an array of objects")
-      .custom((value) => value.every((attr: any) => typeof attr === "object"))
-      .withMessage("Each attribute must be an object"),
+      .custom((value) =>
+        value.every(
+          (attr: any) =>
+            typeof attr === "object" &&
+            mongoose.Types.ObjectId.isValid(attr.id) &&
+            typeof attr.name === "string" &&
+            typeof attr.slug === "string" &&
+            typeof attr.key === "string" &&
+            (typeof attr.value === "number" || typeof attr.value === "string")
+        )
+      )
+      .withMessage(
+        "Each attribute must be an object with valid id, name, slug, key, and value"
+      ),
     body("prices")
       .isObject()
       .withMessage("Prices must be an object")
@@ -106,6 +120,8 @@ router.post(
       isActive,
       isAlcohol,
       cityTax,
+      sku,
+      priority
     } = req.body;
 
     const existingProduct = await Product.findOne({ barCode });
@@ -135,6 +151,8 @@ router.post(
         isActive,
         isAlcohol,
         cityTax,
+        sku,
+        priority
       });
 
       let categoryIds: mongoose.Types.ObjectId[] = [];
