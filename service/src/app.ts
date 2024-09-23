@@ -56,7 +56,7 @@ app.use(apiPrefix, categoriesRouter);
 // Product routes
 app.use(apiPrefix, productBulkCreateRouter);
 app.use(apiPrefix, productCreateRouter);
-app.use(`${apiPrefix}s`, productListRouter);
+app.use(apiPrefix, productListRouter);
 app.use(apiPrefix, productGetRouter);
 app.use(apiPrefix, productBulkUpdateRouter);
 app.use(apiPrefix, productUpdateRouter);
