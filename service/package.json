@@ -5,7 +5,7 @@
   "scripts": {
     "start": "ts-node-dev --poll src/index.ts",
     "test": "jest --watchAll --no-cache --detectOpenHandles",
-    "test:ci": "jest --ci --detectOpenHandles",
+    "test:ci": "jest --ci --detectOpenHandles --forceExit",
     "clean-common:windows": "cd ..\\common && npm run clean-src:windows && cd ..\\service",
     "pub:windows": "npm run clean-common:windows && xcopy /E /I /Y src\\shared\\* ..\\common\\src && cd ..\\common && npm run pub:windows",
     "clean-common": "cd ./../common && npm run clean-src:windows && cd ../service",
