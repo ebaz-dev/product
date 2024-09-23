@@ -17,5 +17,8 @@ export interface ProductCreatedEvent {
     prices: string[];
     thirdPartyData?: object;
     inCase: number;
+    isActive: boolean;
+    isAlcohol: boolean;
+    cityTax: boolean;
   };
 }
