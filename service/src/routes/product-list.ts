@@ -8,7 +8,7 @@ import mongoose, { FilterQuery } from "mongoose";
 const router = express.Router();
 
 router.get(
-  "",
+  "/list",
   [
     query("ids")
       .optional()
