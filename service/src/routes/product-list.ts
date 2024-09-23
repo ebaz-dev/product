@@ -33,15 +33,25 @@ router.get(
       .optional()
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Vendor ID must be a valid ObjectId"),
-    query("categoryId")
+    query("categories")
       .optional()
-      .custom((value) => mongoose.Types.ObjectId.isValid(value))
-      .withMessage("Category ID must be a valid ObjectId"),
-    query("brandId")
+      .custom((value) => {
+        const idsArray = value.split(",").map((id: string) => id.trim());
+        return idsArray.every((id: string) =>
+          mongoose.Types.ObjectId.isValid(id)
+        );
+      })
+      .withMessage("Category IDs must be a comma-separated list of valid ObjectIds"),
+    query("brands")
       .optional()
-      .custom((value) => mongoose.Types.ObjectId.isValid(value))
-      .withMessage("Brand ID must be a valid ObjectId"),
-    query("attributeValue")
+      .custom((value) => {
+        const idsArray = value.split(",").map((id: string) => id.trim());
+        return idsArray.every((id: string) =>
+          mongoose.Types.ObjectId.isValid(id)
+        );
+      })
+      .withMessage("Brand IDs must be a comma-separated list of valid ObjectIds"),
+    query("attributeValues")
       .optional()
       .isString()
       .withMessage("Attribute value must be a string"),
@@ -63,10 +73,10 @@ router.get(
         barCode,
         sku,
         customerId,
-        categoryId,
+        categories,
         vendorId,
-        brandId,
-        attributeValue,
+        brands,
+        attributeValues,
         inCase,
         page = 1,
         limit = 20,
@@ -78,7 +88,6 @@ router.get(
       if (sku) query.sku = { $regex: sku, $options: "i" };
       if (customerId) query.customerId = customerId;
       if (vendorId) query.vendorId = vendorId;
-      if (brandId) query.brandId = brandId;
       if (inCase) query.inCase = inCase;
 
       if (ids) {
@@ -93,25 +102,32 @@ router.get(
         ];
       }
 
-      if (attributeValue) {
+      if (attributeValues) {
+        const attributeValuesArray = (attributeValues as string).split(",").map((val) => val.trim());
         query.attributes = {
           $elemMatch: {
-            value: { $regex: attributeValue, $options: "i" },
+            value: { $in: attributeValuesArray },
           },
         };
       }
 
-      if (categoryId) {
-        query.categoryIds = { $in: categoryId };
+      if (categories) {
+        const categoryIdsArray = (categories as string).split(",").map((id) => id.trim());
+        query.categoryIds = { $in: categoryIdsArray };
       }
 
+      if (brands) {
+        const brandIdsArray = (brands as string).split(",").map((id) => id.trim());
+        query.brandId = { $in: brandIdsArray };
+      }
+      
       const pageNumber = parseInt(page as string, 10);
       const limitNumber = limit === "all" ? 0 : parseInt(limit as string, 10);
       const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
 
       const { products, count: total } = await Product.findWithAdjustedPrice({
         query,
-        customer: { customerId: customerId, categoryId: categoryId },
+        customer: { customerId: customerId },
         skip,
         limit: limitNumber,
       });
