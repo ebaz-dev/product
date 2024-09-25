@@ -62,6 +62,7 @@ app.use(apiPrefix, productBulkUpdateRouter);
 app.use(apiPrefix, productUpdateRouter);
 
 app.all("*", async () => {
+  console.log('router not found');
   throw new NotFoundError();
 });
 

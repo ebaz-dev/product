@@ -2,7 +2,6 @@ import { Document, Schema, model, Types, Model, FilterQuery } from "mongoose";
 import { updateIfCurrentPlugin } from "mongoose-update-if-current";
 import { NotFoundError } from "@ebazdev/core";
 import { ProductPrice, Price } from "./price";
-import { Inventory } from "@ebazdev/inventory";
 import { Brand } from "./brand";
 import { ProductCategory } from "./category";
 
