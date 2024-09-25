@@ -142,7 +142,6 @@ router.post(
           prices: insertedProductPrices[index].prices.map((price: any) =>
             price._id.toString()
           ),
-          thirdPartyData: product.thirdPartyData || {},
           inCase: product.inCase,
         }))
       );

@@ -16,7 +16,6 @@ export interface ProductUpdatedEvent {
     images?: Array<string>;
     attributes?: Array<object>;
     prices?: Types.ObjectId[];
-    thirdPartyData?: object;
     inCase?: number;
   };
 }

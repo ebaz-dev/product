@@ -61,8 +61,10 @@ router.put(
       .withMessage("Attributes must be an array"),
     body("thirdPartyData")
       .optional()
-      .isObject()
-      .withMessage("Third party data must be an object"),
+      .isArray()
+      .withMessage("Third party data must be an array")
+      .custom((value) => value.every((item: any) => typeof item === "object"))
+      .withMessage("Each item in third party data must be an object"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
@@ -108,7 +110,6 @@ router.put(
         images: product?.images,
         attributes: product?.attributes,
         prices: product.prices,
-        thirdPartyData: product.thirdPartyData,
         inCase: product.inCase,
       });
 

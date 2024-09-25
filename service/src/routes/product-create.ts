@@ -194,7 +194,6 @@ router.post(
         images: product.images || [],
         attributes: product.attributes,
         prices: product.prices.map((price) => price.toString()),
-        thirdPartyData: product.thirdPartyData || {},
         inCase: product.inCase,
         isActive: product.isActive,
         isAlcohol: product.isAlcohol ?? false,

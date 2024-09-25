@@ -107,7 +107,7 @@ interface ProductDoc extends Document {
   prices: Types.ObjectId[];
   _adjustedPrice?: Price;
   adjustedPrice?: Price;
-  thirdPartyData?: object;
+  thirdPartyData?: Array<Record<string, any>>;
   inCase: number;
   inventoryId: Types.ObjectId;
   iventory?: Inventory;
@@ -189,7 +189,12 @@ const productSchema = new Schema<ProductDoc>(
       ref: "ProductAttribute",
     },
     thirdPartyData: {
-      type: Object,
+      type: [
+        {
+          type: Schema.Types.Mixed,
+          required: false,
+        },
+      ],
       required: false,
     },
     inCase: {

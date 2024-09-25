@@ -15,7 +15,6 @@ export interface ProductCreatedEvent {
     images: Array<string>;
     attributes?: Array<object>;
     prices: string[];
-    thirdPartyData?: object;
     inCase: number;
     isActive: boolean;
     isAlcohol: boolean;

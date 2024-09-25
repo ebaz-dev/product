@@ -46,10 +46,12 @@ router.put(
       .optional()
       .isArray()
       .withMessage("Attributes must be an array"),
-    body("*.thirdPartyData")
+    body("thirdPartyData")
       .optional()
-      .isObject()
-      .withMessage("Third party data must be an object"),
+      .isArray()
+      .withMessage("Third party data must be an array")
+      .custom((value) => value.every((item: any) => typeof item === "object"))
+      .withMessage("Each item in third party data must be an object"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {

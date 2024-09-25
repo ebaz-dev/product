@@ -15,7 +15,6 @@ export interface ProductsCreatedEvent {
     image: Array<string>;
     attributes?: Array<object>;
     prices: string[];
-    thirdPartyData?: object;
     inCase: number;
   }[];
 }
