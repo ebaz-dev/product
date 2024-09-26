@@ -354,6 +354,11 @@ productSchema.statics.findWithAdjustedPrice = async function (
       path: "promos",
       select:
         "name thresholdQuantity promoPercent giftQuantity isActive thirdPartyPromoType thirdPartyPromoTypeByCode startDate endDate tradeshops products giftProducts",
+      match: {
+        startDate: { $lte: new Date() },
+        endDate: { $gte: new Date() },
+        isActive: true,
+      },
     });
 
   for (const product of products) {
@@ -389,6 +394,11 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
       path: "promos",
       select:
         "name thresholdQuantity promoPercent giftQuantity isActive thirdPartyPromoType thirdPartyPromoTypeByCode startDate endDate tradeshops products giftProducts",
+      match: {
+        startDate: { $lte: new Date() },
+        endDate: { $gte: new Date() },
+        isActive: true,
+      },
     });
 
   if (!product) {
