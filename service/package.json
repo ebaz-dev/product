@@ -26,7 +26,7 @@
   "description": "",
   "dependencies": {
     "@ebazdev/auth": "^1.0.20",
-    "@ebazdev/cola-integration": "^1.0.1",
+    "@ebazdev/cola-integration": "^1.0.4",
     "@ebazdev/core": "^1.0.17",
     "@ebazdev/customer": "^1.0.12",
     "@ebazdev/inventory": "^1.0.11",
