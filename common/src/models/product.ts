@@ -4,6 +4,7 @@ import { NotFoundError } from "@ebazdev/core";
 import { ProductPrice, Price } from "./price";
 import { Brand } from "./brand";
 import { ProductCategory } from "./category";
+import mongoose from "mongoose";
 
 interface AdjustedPrice {
   prices: Types.ObjectId;
@@ -209,20 +210,18 @@ const productSchema = new Schema<ProductDoc>(
     isActive: {
       type: Boolean,
       required: true,
-      default: true,
     },
     isAlcohol: {
       type: Boolean,
-      required: true,
+      required: false,
     },
     cityTax: {
       type: Boolean,
-      required: true,
+      required: false,
     },
     priority: {
       type: Number,
       required: true,
-      unique: true,
     },
   },
   {
@@ -232,6 +231,11 @@ const productSchema = new Schema<ProductDoc>(
         if (doc._adjustedPrice) {
           ret.adjustedPrice = doc._adjustedPrice;
         }
+
+        if (!ret.brand) {
+          ret.brand = {};
+        }
+
         ret.id = ret._id;
         delete ret._id;
         delete ret.__v;
@@ -261,6 +265,13 @@ productSchema.virtual("categories", {
   foreignField: "_id",
 });
 
+productSchema.virtual("customer", {
+  ref: "Customer",
+  localField: "customerId",
+  foreignField: "_id",
+  justOne: true,
+});
+
 productSchema.plugin(updateIfCurrentPlugin);
 
 productSchema
@@ -271,6 +282,21 @@ productSchema
   .set(function (price) {
     this._adjustedPrice = price;
   });
+
+productSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    const ProductModel = this.constructor as mongoose.Model<ProductDoc>;
+    const highestPriorityProduct = await ProductModel.findOne({
+      customerId: this.customerId,
+    })
+      .sort("-priority")
+      .exec();
+    this.priority = highestPriorityProduct
+      ? highestPriorityProduct.priority + 1
+      : 1;
+  }
+  next();
+});
 
 productSchema.statics.findWithAdjustedPrice = async function (
   params: IfindWithAdjustedPrice
@@ -291,6 +317,11 @@ productSchema.statics.findWithAdjustedPrice = async function (
     .populate({
       path: "categories",
       select: "name slug",
+    })
+    .populate({
+      path: "customer",
+      select:
+        "name type regNo categoryId userId address phone email logo bankAccounts",
     });
 
   for (const product of products) {
@@ -359,8 +390,8 @@ productSchema.methods.getAdjustedPrice = async function (externalData: {
   }
 
   const priceData = {
-    price: selectedPrice.prices.price,
-    cost: selectedPrice.prices.cost,
+    price: selectedPrice?.prices?.price || 0,
+    cost: selectedPrice?.prices?.cost || 0,
   };
 
   return { prices: priceData };

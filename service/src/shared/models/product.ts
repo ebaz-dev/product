@@ -231,6 +231,11 @@ const productSchema = new Schema<ProductDoc>(
         if (doc._adjustedPrice) {
           ret.adjustedPrice = doc._adjustedPrice;
         }
+
+        if (!ret.brand) {
+          ret.brand = {};
+        }
+
         ret.id = ret._id;
         delete ret._id;
         delete ret.__v;
@@ -258,6 +263,13 @@ productSchema.virtual("categories", {
   ref: "ProductCategory",
   localField: "categoryIds",
   foreignField: "_id",
+});
+
+productSchema.virtual("customer", {
+  ref: "Customer",
+  localField: "customerId",
+  foreignField: "_id",
+  justOne: true,
 });
 
 productSchema.plugin(updateIfCurrentPlugin);
@@ -305,6 +317,11 @@ productSchema.statics.findWithAdjustedPrice = async function (
     .populate({
       path: "categories",
       select: "name slug",
+    })
+    .populate({
+      path: "customer",
+      select:
+        "name type regNo categoryId userId address phone email logo bankAccounts",
     });
 
   for (const product of products) {

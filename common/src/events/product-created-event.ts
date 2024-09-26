@@ -11,13 +11,13 @@ export interface ProductCreatedEvent {
     vendorId?: string;
     categoryIds?: string[];
     brandId?: string;
-    description: string;
+    description?: string;
     images: Array<string>;
     attributes?: Array<object>;
     prices: string[];
     inCase: number;
     isActive: boolean;
-    isAlcohol: boolean;
-    cityTax: boolean;
+    isAlcohol?: boolean;
+    cityTax?: boolean;
   };
 }
