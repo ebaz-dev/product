@@ -1,6 +1,5 @@
 import { Document, Schema, model, Types, Model, FilterQuery } from "mongoose";
 import { updateIfCurrentPlugin } from "mongoose-update-if-current";
-import { NotFoundError } from "@ebazdev/core";
 import { ProductPrice, Price } from "./price";
 import { Brand } from "./brand";
 import { ProductCategory } from "./category";
@@ -111,7 +110,7 @@ interface ProductDoc extends Document {
   thirdPartyData?: Array<Record<string, any>>;
   inCase: number;
   inventoryId: Types.ObjectId;
-  iventory?: Inventory;
+  inventory?: Inventory;
   isActive: boolean;
   isAlcohol?: boolean;
   cityTax?: boolean;
@@ -350,7 +349,7 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     });
 
   if (!product) {
-    throw new NotFoundError();
+    throw new Error("Product not found");
   }
 
   const price = await product.getAdjustedPrice(params.merchant);
