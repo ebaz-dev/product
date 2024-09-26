@@ -387,7 +387,8 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     })
     .populate({
       path: "promos",
-      select: "name startDate endDate promoPercent",
+      select:
+        "name thresholdQuantity promoPercent giftQuantity isActive thirdPartyPromoType thirdPartyPromoTypeByCode startDate endDate tradeshops products giftProducts",
     });
 
   if (!product) {
