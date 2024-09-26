@@ -3,6 +3,7 @@ import { updateIfCurrentPlugin } from "mongoose-update-if-current";
 import { ProductPrice, Price } from "./price";
 import { Brand } from "./brand";
 import { ProductCategory } from "./category";
+import { Promo } from "./promo";
 import mongoose from "mongoose";
 
 interface AdjustedPrice {
@@ -63,6 +64,25 @@ interface Attribute {
   value: number | string;
 }
 
+interface Promo {
+  id: Types.ObjectId;
+  customerId: Types.ObjectId;
+  thirdPartyPromoId: number;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  thresholdQuantity: number;
+  promoPercent: number;
+  giftQuantity: number;
+  isActive: boolean;
+  thirdPartyPromoTypeId: number;
+  thirdPartyPromoType: string;
+  thirdPartyPromoTypeByCode: string;
+  products: Types.ObjectId[];
+  giftProducts: Types.ObjectId[];
+  tradeshops: number[];
+}
+
 const attributeSchema = new Schema<Attribute>(
   {
     id: {
@@ -115,6 +135,7 @@ interface ProductDoc extends Document {
   isAlcohol?: boolean;
   cityTax?: boolean;
   priority: number;
+  promo?: Promo[];
 }
 
 interface ProductModel extends Model<ProductDoc> {
@@ -271,6 +292,13 @@ productSchema.virtual("customer", {
   justOne: true,
 });
 
+productSchema.virtual("promos", {
+  ref: "Promo",
+  localField: "_id",
+  foreignField: "products",
+  justOne: false,
+});
+
 productSchema.plugin(updateIfCurrentPlugin);
 
 productSchema
@@ -321,6 +349,11 @@ productSchema.statics.findWithAdjustedPrice = async function (
       path: "customer",
       select:
         "name type regNo categoryId userId address phone email logo bankAccounts",
+    })
+    .populate({
+      path: "promos",
+      select:
+        "name thresholdQuantity promoPercent giftQuantity isActive thirdPartyPromoType thirdPartyPromoTypeByCode startDate endDate tradeshops products giftProducts",
     });
 
   for (const product of products) {
@@ -346,6 +379,15 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     .populate({
       path: "categories",
       select: "name slug",
+    })
+    .populate({
+      path: "customer",
+      select:
+        "name type regNo categoryId userId address phone email logo bankAccounts",
+    })
+    .populate({
+      path: "promos",
+      select: "name startDate endDate promoPercent",
     });
 
   if (!product) {

@@ -18,8 +18,8 @@ const brandSchema = new Schema<BrandDoc>(
       required: true,
     },
     slug: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     customerId: {
       type: Schema.Types.ObjectId,

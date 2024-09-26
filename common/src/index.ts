@@ -7,4 +7,4 @@ export * from "./events/product-created-event";
 export * from "./events/product-updated-event";
 export * from "./events/product-event-subjects";
 export * from "./events/promo-created-event";
-export * from "./events/promo-event-subjects"
+export * from "./events/promo-event-subjects";
