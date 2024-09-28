@@ -3,6 +3,7 @@ import { query } from "express-validator";
 import { validateRequest } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product, ProductDoc } from "../shared/models/product";
+import { Promo } from "../shared/models/promo";
 import { Merchant } from "@ebazdev/customer";
 import mongoose, { FilterQuery } from "mongoose";
 
@@ -94,6 +95,18 @@ router.get(
       .withMessage(
         "Order by must be one of the following: priority,favourite ,discount ,promotion ,sizeIncreased, sizeDecreased"
       ),
+    query("inCase")
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage("In case must be a positive integer"),
+    query("discount")
+      .optional()
+      .isBoolean()
+      .withMessage("Discount must be a boolean"),
+    query("promotion")
+      .optional()
+      .isBoolean()
+      .withMessage("Promotion must be a boolean"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
@@ -113,6 +126,8 @@ router.get(
         page = 1,
         limit = 20,
         orderBy,
+        discount,
+        promotion,
       } = req.query;
 
       const query: FilterQuery<ProductDoc> = {};
@@ -188,6 +203,35 @@ router.get(
         }
       } else {
         sort.priority = 1;
+      }
+
+      if (promotion || discount) {
+        const promoQuery: FilterQuery<any> = {
+          isActive: true,
+          startDate: { $lte: new Date() },
+          endDate: { $gte: new Date() },
+        };
+
+        const promoConditions: FilterQuery<any>[] = [];
+        if (promotion) promoConditions.push({ thirdPartyPromoTypeId: 1 });
+        if (discount) promoConditions.push({ thirdPartyPromoTypeId: 2 });
+
+        if (promoConditions.length > 0) {
+          promoQuery.$or = promoConditions;
+        }
+
+        const promos = await Promo.find(promoQuery).select("products");
+        const promoProductIds = promos.flatMap((promo) => promo.products);
+
+        if (promoProductIds.length > 0) {
+          if (query._id) {
+            query._id = {
+              $in: [...promoProductIds, ...(query._id as any).$in],
+            };
+          } else {
+            query._id = { $in: promoProductIds };
+          }
+        }
       }
 
       const merchant = await Merchant.findById(merchantId as string);
