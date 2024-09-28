@@ -69,11 +69,15 @@ router.put(
       .optional()
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Merchant ID must be a valid ObjectId"),
+    body("deleteFavourite")
+      .optional()
+      .custom((value) => mongoose.Types.ObjectId.isValid(value))
+      .withMessage("Merchant ID must be a valid ObjectId to remove"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name, categoryId, addFavourite, ...otherFields } = req.body;
+    const { name, categoryId, addFavourite, deleteFavourite, ...otherFields } = req.body;
 
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -108,6 +112,14 @@ router.put(
 
         if (!isFavouritePresent) {
           product.favourite.push(new mongoose.Types.ObjectId(addFavourite));
+        }
+      }
+
+      if (deleteFavourite) {
+        if (product.favourite) {
+          product.favourite = product.favourite.filter(
+            (fav) => !fav.equals(deleteFavourite)
+          );
         }
       }
 
