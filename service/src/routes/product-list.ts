@@ -107,6 +107,10 @@ router.get(
       .optional()
       .isBoolean()
       .withMessage("Promotion must be a boolean"),
+    query("favourite")
+      .optional()
+      .isBoolean()
+      .withMessage("Favourite must be a boolean"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
@@ -128,6 +132,7 @@ router.get(
         orderBy,
         discount,
         promotion,
+        favourite,
       } = req.query;
 
       const query: FilterQuery<ProductDoc> = {};
@@ -191,6 +196,7 @@ router.get(
       const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
 
       const sort: { [key: string]: 1 | -1 } = {};
+
       if (orderBy) {
         const [key, order] = (orderBy as string).split(":");
         if (validOrderByFields.includes(key)) {
@@ -223,6 +229,16 @@ router.get(
         const promos = await Promo.find(promoQuery).select("products");
         const promoProductIds = promos.flatMap((promo) => promo.products);
 
+        if (promoProductIds.length === 0) {
+          const total = 0;
+          return res.status(StatusCodes.OK).send({
+            data: [],
+            total: 0,
+            totalPages: limit === "all" ? 1 : Math.ceil(total / limitNumber),
+            currentPage: limit === "all" ? 1 : pageNumber,
+          });
+        }
+
         if (promoProductIds.length > 0) {
           if (query._id) {
             query._id = {
@@ -232,6 +248,12 @@ router.get(
             query._id = { $in: promoProductIds };
           }
         }
+      }
+
+      if (favourite && merchantId) {
+        query.favourite = {
+          $in: [new mongoose.Types.ObjectId(merchantId as string)],
+        };
       }
 
       const merchant = await Merchant.findById(merchantId as string);

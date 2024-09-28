@@ -65,36 +65,54 @@ router.put(
       .withMessage("Third party data must be an array")
       .custom((value) => value.every((item: any) => typeof item === "object"))
       .withMessage("Each item in third party data must be an object"),
+    body("addFavourite")
+      .optional()
+      .custom((value) => mongoose.Types.ObjectId.isValid(value))
+      .withMessage("Merchant ID must be a valid ObjectId"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name, categoryId, ...otherFields } = req.body;
-
-    const product = await Product.findById(id);
-
-    if (!product) {
-      throw new BadRequestError("Product not found");
-    }
-
-    if (name) {
-      product.name = name;
-      product.slug = slugify(name, { lower: true, strict: true });
-    }
-
-    if (categoryId) {
-      const categoryIds = await getParentCategoryIds(
-        new mongoose.Types.ObjectId(categoryId)
-      );
-      product.categoryIds = categoryIds;
-    }
-
-    Object.assign(product, otherFields);
+    const { name, categoryId, addFavourite, ...otherFields } = req.body;
 
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
+      const product = await Product.findById(id).session(session);
+
+      if (!product) {
+        throw new BadRequestError("Product not found");
+      }
+
+      if (name) {
+        product.name = name;
+        product.slug = slugify(name, { lower: true, strict: true });
+      }
+
+      if (categoryId) {
+        const categoryIds = await getParentCategoryIds(
+          new mongoose.Types.ObjectId(categoryId)
+        );
+        product.categoryIds = categoryIds;
+      }
+
+      if (addFavourite) {
+        if (!product.favourite) {
+          product.favourite = [];
+        }
+
+        const isFavouritePresent = product.favourite.some((fav) =>
+          fav.equals(addFavourite)
+        );
+
+        if (!isFavouritePresent) {
+          product.favourite.push(new mongoose.Types.ObjectId(addFavourite));
+        }
+      }
+
+      Object.assign(product, otherFields);
+
       await product.save({ session });
 
       await new ProductUpdatedPublisher(natsWrapper.client).publish({

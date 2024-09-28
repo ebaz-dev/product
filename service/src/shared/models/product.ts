@@ -27,6 +27,7 @@ export interface IFindOneWithAdjustedPrice {
   query: { _id: Types.ObjectId };
   merchant: Merchant;
 }
+
 export interface IReturnFindWithAdjustedPrice {
   products: ProductDoc[];
   count: number;
@@ -136,6 +137,7 @@ interface ProductDoc extends Document {
   cityTax?: boolean;
   priority: number;
   promo?: Promo[];
+  favourite?: Types.ObjectId[];
 }
 
 interface ProductModel extends Model<ProductDoc> {
@@ -242,6 +244,11 @@ const productSchema = new Schema<ProductDoc>(
     priority: {
       type: Number,
       required: true,
+    },
+    favourite: {
+      type: [Schema.Types.ObjectId],
+      required: false,
+      ref: "Customer",
     },
   },
   {
