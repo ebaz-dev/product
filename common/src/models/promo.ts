@@ -75,7 +75,7 @@ const promoSchema = new Schema<PromoDoc>(
     },
     thirdPartyPromoTypeByCode: {
       type: String,
-      required: true,
+      required: false,
     },
     products: {
       type: [Schema.Types.ObjectId],

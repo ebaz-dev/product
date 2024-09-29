@@ -3,6 +3,7 @@ export * from "./models/price";
 export * from "./models/attribute";
 export * from "./models/brand";
 export * from "./models/category";
+export * from "./models/promo";
 export * from "./events/product-created-event";
 export * from "./events/product-updated-event";
 export * from "./events/product-event-subjects";
