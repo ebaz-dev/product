@@ -53,6 +53,7 @@ export class ColaPromoListener extends Listener<ColaPromoRecievedEvent> {
         promoPercent: promoPercent,
         giftQuantity: giftQuantity,
         isActive: isActive,
+        promoTypeId: promoType.typeId,
         promoTypeName: promoType.name,
         promoType: promoType.type,
         products: products,

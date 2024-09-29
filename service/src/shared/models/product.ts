@@ -356,17 +356,17 @@ productSchema.statics.findWithAdjustedPrice = async function (
       path: "customer",
       select:
         "name type regNo categoryId userId address phone email logo bankAccounts",
+    })
+    .populate({
+      path: "promos",
+      select:
+        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops",
+      match: {
+        startDate: { $lte: new Date() },
+        endDate: { $gte: new Date() },
+        isActive: true,
+      },
     });
-    // .populate({
-    //   path: "promos",
-    //   select:
-    //     "name thresholdQuantity promoPercent giftQuantity isActive thirdPartyPromoType thirdPartyPromoTypeByCode startDate endDate tradeshops products giftProducts",
-    //   match: {
-    //     startDate: { $lte: new Date() },
-    //     endDate: { $gte: new Date() },
-    //     isActive: true,
-    //   },
-    // });
 
   for (const product of products) {
     const price = await product.getAdjustedPrice(params.merchant);
@@ -396,17 +396,17 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
       path: "customer",
       select:
         "name type regNo categoryId userId address phone email logo bankAccounts",
+    })
+    .populate({
+      path: "promos",
+      select:
+        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops",
+      match: {
+        startDate: { $lte: new Date() },
+        endDate: { $gte: new Date() },
+        isActive: true,
+      },
     });
-    // .populate({
-    //   path: "promos",
-    //   select:
-    //     "name thresholdQuantity promoPercent giftQuantity isActive thirdPartyPromoType thirdPartyPromoTypeByCode startDate endDate tradeshops products giftProducts",
-    //   match: {
-    //     startDate: { $lte: new Date() },
-    //     endDate: { $gte: new Date() },
-    //     isActive: true,
-    //   },
-    // });
 
   if (!product) {
     throw new Error("Product not found");

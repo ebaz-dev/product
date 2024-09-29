@@ -22,6 +22,7 @@ interface PromoDoc extends Document {
   promoPercent: number;
   giftQuantity: number;
   isActive: boolean;
+  promoTypeId: number;
   promoTypeName: PromoTypeNames;
   promoType: PromoTypes;
   products: Types.ObjectId[];
@@ -65,6 +66,10 @@ const promoSchema = new Schema<PromoDoc>(
     },
     isActive: {
       type: Boolean,
+      required: true,
+    },
+    promoTypeId: {
+      type: Number,
       required: true,
     },
     promoTypeName: {

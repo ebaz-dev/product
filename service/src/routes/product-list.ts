@@ -219,8 +219,8 @@ router.get(
         };
 
         const promoConditions: FilterQuery<any>[] = [];
-        if (promotion) promoConditions.push({ thirdPartyPromoTypeId: 1 });
-        if (discount) promoConditions.push({ thirdPartyPromoTypeId: 2 });
+        if (promotion) promoConditions.push({ promoTypeId: { $in: [1,2] } });
+        if (discount) promoConditions.push({ promoTypeId: {$in: [3]} });
 
         if (promoConditions.length > 0) {
           promoQuery.$or = promoConditions;
