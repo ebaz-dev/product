@@ -120,4 +120,4 @@ promoSchema.plugin(updateIfCurrentPlugin);
 
 const Promo = model<PromoDoc, PromoModel>("Promo", promoSchema);
 
-export { Promo };
+export { Promo, PromoDoc };
