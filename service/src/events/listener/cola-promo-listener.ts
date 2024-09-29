@@ -37,7 +37,7 @@ export class ColaPromoListener extends Listener<ColaPromoRecievedEvent> {
 
       const promo = new Promo({
         name: name,
-        customerId: customerId,
+        customerId: new mongoose.Types.ObjectId("66ebe3e3c0acbbab7824b195"),
         thirdPartyPromoId: thirdPartyPromoId,
         startDate: startDate,
         endDate: endDate,
