@@ -6,6 +6,7 @@ import {
 } from "@ebazdev/cola-integration";
 import { queueGroupName } from "./queu-group-name";
 import { Promo } from "../../shared/models/promo";
+import { PromoType } from "../../shared/models/promoType";
 import mongoose from "mongoose";
 
 export class ColaPromoListener extends Listener<ColaPromoRecievedEvent> {
@@ -17,50 +18,68 @@ export class ColaPromoListener extends Listener<ColaPromoRecievedEvent> {
       const {
         name,
         customerId,
-        thirdPartyPromoId,
         startDate,
         endDate,
         thresholdQuantity,
         promoPercent,
         giftQuantity,
         isActive,
-        thirdPartyPromoTypeId,
-        thirdPartyPromoType,
-        thirdPartyPromoTypeByCode,
         tradeshops,
         products,
         giftProducts,
+        thirdPartyPromoId,
+        thirdPartyPromoTypeId,
+        thirdPartyPromoType,
+        thirdPartyPromoTypeCode,
         colaProducts,
         colaGiftProducts,
         colaTradeshops,
       } = data;
 
+      const promoType = await PromoType.findOne({
+        type: thirdPartyPromoTypeCode,
+      });
+
+      if (!promoType) {
+        throw new Error(`Invalid promo type: ${thirdPartyPromoTypeCode}`);
+      }
+
       const promo = new Promo({
+        customerId: new mongoose.Types.ObjectId(customerId),
         name: name,
-        customerId: new mongoose.Types.ObjectId("66ebe3e3c0acbbab7824b195"),
-        thirdPartyPromoId: thirdPartyPromoId,
         startDate: startDate,
         endDate: endDate,
         thresholdQuantity: thresholdQuantity,
         promoPercent: promoPercent,
         giftQuantity: giftQuantity,
         isActive: isActive,
-        thirdPartyPromoTypeId: thirdPartyPromoTypeId,
-        thirdPartyPromoType: thirdPartyPromoType,
-        thirdPartyPromoTypeByCode: thirdPartyPromoTypeByCode,
-        tradeshops: tradeshops,
+        promoTypeName: promoType.name,
+        promoType: promoType.type,
         products: products,
         giftProducts: giftProducts,
-        colaProducts: colaProducts,
-        colaGiftProducts: colaGiftProducts,
-        colaTradeshops: colaTradeshops,
+        tradeshops: tradeshops,
+        thirdPartyData: {
+          thirdPartyPromoName: name,
+          thirdPartyPromoId: thirdPartyPromoId,
+          thirdPartyPromoTypeId: thirdPartyPromoTypeId,
+          thirdPartyPromoType: thirdPartyPromoType,
+          thirdPartyPromoTypeCode: thirdPartyPromoTypeCode,
+          thirdParyProducts: colaProducts,
+          thirdPartyGiftProducts: colaGiftProducts,
+          thirdPartyTradeshops: colaTradeshops,
+        },
       });
-
+      
       promo.save();
 
       msg.ack();
     } catch (error: any) {
-      console.error("Error processing ColaNewProductEvent:", error);
+      if (error.message.includes("Invalid promo type")) {
+        console.error("Invalid promo type");
+        msg.ack();
+      } else {
+        console.error("Error processing ColaNewProductEvent:", error);
+      }
     }
   }
 }

@@ -18,6 +18,7 @@ import { brandCreateRouter } from "./routes/brand-create";
 import { brandsRouter } from "./routes/brand-list";
 import { createCategoryRouter } from "./routes/category-create";
 import { categoriesRouter } from "./routes/category-list";
+import { promoCreateRouter } from "./routes/promo-type-create";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 
@@ -52,6 +53,9 @@ app.use(apiPrefix, brandsRouter);
 // Category routes
 app.use(apiPrefix, createCategoryRouter);
 app.use(apiPrefix, categoriesRouter);
+
+// Promo routes
+app.use(apiPrefix, promoCreateRouter);
 
 // Product routes
 app.use(apiPrefix, productBulkCreateRouter);

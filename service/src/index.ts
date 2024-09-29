@@ -3,7 +3,7 @@ import { app } from "./app";
 import { natsWrapper } from "./nats-wrapper";
 import { InventoryCreatedListener } from "./events/listener/inventory-created-listener";
 import { ColaNewProductListener } from "./events/listener/cola-new-product-listener";
-import { ColaPromoListener } from "./events/listener/cola-promo-listener";
+import { ColaPromoListener } from "./events/listener/cola-new -promo-listener";
 
 const start = async () => {
   if (!process.env.PORT) {

@@ -1,10 +1,20 @@
 import { Document, Schema, model, Types, Model } from "mongoose";
 import { updateIfCurrentPlugin } from "mongoose-update-if-current";
+import { PromoTypeNames, PromoTypes } from "./promoType";
 
+interface thirdPartyData {
+  thirdPartyPromoName: string;
+  thirdPartyPromoId: number;
+  thirdPartyPromoTypeId: number;
+  thirdPartyPromoType: string;
+  thirdPartyPromoTypeCode: string;
+  thirdParyProducts: number[];
+  thirdPartyGiftProducts: number[];
+  thirdPartyTradeshops: number[];
+}
 interface PromoDoc extends Document {
   id: Types.ObjectId;
   customerId: Types.ObjectId;
-  thirdPartyPromoId: number;
   name: string;
   startDate: Date;
   endDate: Date;
@@ -12,16 +22,12 @@ interface PromoDoc extends Document {
   promoPercent: number;
   giftQuantity: number;
   isActive: boolean;
-  thirdPartyPromoTypeId: number;
-  thirdPartyPromoType: string;
-  thirdPartyPromoTypeByCode: string;
+  promoTypeName: PromoTypeNames;
+  promoType: PromoTypes;
   products: Types.ObjectId[];
   giftProducts: Types.ObjectId[];
-  // tradeshops: Types.ObjectId[];
   tradeshops: number[];
-  colaProducts: number[];
-  colaGiftProducts: number[];
-  colaTradeshops: number[];
+  thirdPartyData?: thirdPartyData;
 }
 
 interface PromoModel extends Model<PromoDoc> {}
@@ -32,10 +38,6 @@ const promoSchema = new Schema<PromoDoc>(
       type: Schema.Types.ObjectId,
       required: true,
       ref: "Customer",
-    },
-    thirdPartyPromoId: {
-      type: Number,
-      required: true,
     },
     name: {
       type: String,
@@ -65,17 +67,13 @@ const promoSchema = new Schema<PromoDoc>(
       type: Boolean,
       required: true,
     },
-    thirdPartyPromoTypeId: {
-      type: Number,
-      required: true,
-    },
-    thirdPartyPromoType: {
+    promoTypeName: {
       type: String,
       required: true,
     },
-    thirdPartyPromoTypeByCode: {
+    promoType: {
       type: String,
-      required: false,
+      required: true,
     },
     products: {
       type: [Schema.Types.ObjectId],
@@ -91,17 +89,39 @@ const promoSchema = new Schema<PromoDoc>(
       type: [Number],
       required: true,
     },
-    colaProducts: {
-      type: [Number],
-      required: true,
-    },
-    colaGiftProducts: {
-      type: [Number],
-      required: true,
-    },
-    colaTradeshops: {
-      type: [Number],
-      required: true,
+    thirdPartyData: {
+      thirdPartyPromoName: {
+        type: String,
+        required: false,
+      },
+      thirdPartyPromoId: {
+        type: Number,
+        required: false,
+      },
+      thirdPartyPromoTypeId: {
+        type: Number,
+        required: false,
+      },
+      thirdPartyPromoType: {
+        type: String,
+        required: false,
+      },
+      thirdPartyPromoTypeCode: {
+        type: String,
+        required: false,
+      },
+      thirdParyProducts: {
+        type: [Number],
+        required: false,
+      },
+      thirdPartyGiftProducts: {
+        type: [Number],
+        required: false,
+      },
+      thirdPartyTradeshops: {
+        type: [Number],
+        required: false,
+      },
     },
   },
   {
