@@ -516,7 +516,7 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     const merchantProduct = merchantProducts.find(
       (p: any) => p.productid === thirdPartyProductId
     );
-    
+
     initializeAdjustedPrice(product);
     initializeInventory(product);
 
@@ -575,15 +575,20 @@ export { Product, ProductDoc };
 
 async function getMerchantProducts(cocaColaTsId = 0) {
   try {
-    const tokenResponse = await axios.post(process.env.COLA_GET_TOKEN_URI!, {
-      username: process.env.COLA_USERNAME!,
-      pass: process.env.COLA_PASSWORD!,
+    const COLA_GET_TOKEN_URI = "http://122.201.28.22:8083/api/tokenbazaar"
+    const COLA_USERNAME = "bazaar"
+    const COLA_PASSWORD = "M8@46jkljkjkljlk#$2024"
+    const COLA_PRODUCTS_BY_MERCHANTID = "http://122.201.28.22:8083/api/ebazaar/productremains"
+
+    const tokenResponse = await axios.post(COLA_GET_TOKEN_URI!, {
+      username: COLA_USERNAME,
+      pass: COLA_PASSWORD,
     });
 
     const token = tokenResponse.data.token;
 
     const productsResponse = await axios.post(
-      process.env.COLA_PRODUCTS_BY_MERCHANTID!,
+      COLA_PRODUCTS_BY_MERCHANTID,
       { tradeshopid: cocaColaTsId },
       {
         headers: { Authorization: `Bearer ${token}` },
