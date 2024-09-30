@@ -22,6 +22,7 @@ import { promoCreateRouter } from "./routes/promo-type-create";
 import { promoGetRouter } from "./routes/promo-get";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
+import { healthRouter } from "./routes/health";
 
 dotenv.config();
 
@@ -36,6 +37,8 @@ app.use(
     secure: process.env.NODE_ENV !== "test",
   })
 );
+
+app.use(apiPrefix, healthRouter);
 
 // Price routes
 app.use(apiPrefix, pricesRouter);
