@@ -6,6 +6,7 @@ import { ProductCategory } from "./category";
 import { Promo } from "./promo";
 import { Merchant } from "@ebazdev/customer";
 import mongoose from "mongoose";
+// import axios from "axios";
 
 interface AdjustedPrice {
   prices: Types.ObjectId;
@@ -371,7 +372,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
     .populate({
       path: "promos",
       select:
-        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops",
+        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops thirdPartyData.thirdPartyPromoId",
       match: {
         startDate: { $lte: new Date() },
         endDate: { $gte: new Date() },
@@ -384,6 +385,28 @@ productSchema.statics.findWithAdjustedPrice = async function (
     const price = await product.getAdjustedPrice(params.merchant);
     product.adjustedPrice = price.prices;
   }
+
+  // if (cocaColaTsId) {
+  //   const { merchantProducts, merchantShatlal } = await getMerchantProducts(cocaColaTsId);
+
+  //   products.map((product: any) => {
+  //     const thirdPartyData = product.thirdPartyData || [];
+  //     let thirdPartyProductId = 0;
+
+  //     for (const data of thirdPartyData) {
+  //       if (data.customerId?.toString() === params.query.customerId) {
+  //         thirdPartyProductId = data.productId;
+  //       }
+  //     }
+
+  //     const merchantProduct = merchantProducts.find(
+  //       (p: any) => p.productid === thirdPartyProductId
+  //     );
+  //     // console.log(merchantProduct);
+  //     // product.adjustedPrice.price = merchantProduct?.price || 0;
+  //     // product.inventory.availableStock = merchantProduct?.quantity || 0;
+  //   });
+  // }
 
   return { products, count };
 };
@@ -471,3 +494,50 @@ productSchema.methods.getAdjustedPrice = async function (externalData: {
 const Product = model<ProductDoc, ProductModel>("Product", productSchema);
 
 export { Product, ProductDoc };
+
+// async function getMerchantProducts(cocaColaTsId = 0) {
+//   const {
+//     COLA_GET_TOKEN_URI,
+//     COLA_USERNAME,
+//     COLA_PASSWORD,
+//     COLA_PRODUCTS_BY_MERCHANTID,
+//   } = process.env.NODE_ENV === "development" ? process.env : process.env;
+
+//   if (
+//     !COLA_GET_TOKEN_URI ||
+//     !COLA_USERNAME ||
+//     !COLA_PASSWORD ||
+//     !COLA_PRODUCTS_BY_MERCHANTID
+//   ) {
+//     throw new Error("Environment variables are not set");
+//   }
+
+//   const tokenResponse = await axios.post(COLA_GET_TOKEN_URI, {
+//     username: COLA_USERNAME,
+//     pass: COLA_PASSWORD,
+//   });
+
+//   const token = tokenResponse.data.token;
+
+//   const productsResponse = await axios.post(
+//     COLA_PRODUCTS_BY_MERCHANTID,
+//     {
+//       tradeshopid: cocaColaTsId,
+//     },
+//     {
+//       headers: { Authorization: `Bearer ${token}` },
+//       maxBodyLength: Infinity,
+//     }
+//   );
+//   let merchantProducts = productsResponse.data.data;
+//   merchantProducts = merchantProducts.map((product: any) => {
+//     if (product.quantity < 1000) {
+//       product.quantity = 0;
+//     }
+//     return product;
+//   });
+
+//   const merchantShatlal = productsResponse.data.shatlal;
+
+//   return { merchantProducts, merchantShatlal };
+// }
