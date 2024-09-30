@@ -360,7 +360,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
     .populate({
       path: "promos",
       select:
-        "name thresholdQuantity promoPercent giftQuantity isActive thirdPartyPromoType thirdPartyPromoTypeByCode startDate endDate tradeshops products giftProducts",
+        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops",
       match: {
         startDate: { $lte: new Date() },
         endDate: { $gte: new Date() },
@@ -400,7 +400,7 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     .populate({
       path: "promos",
       select:
-        "name thresholdQuantity promoPercent giftQuantity isActive thirdPartyPromoType thirdPartyPromoTypeByCode startDate endDate tradeshops products giftProducts",
+        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops",
       match: {
         startDate: { $lte: new Date() },
         endDate: { $gte: new Date() },

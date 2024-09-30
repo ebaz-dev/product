@@ -4,8 +4,9 @@ import { validateRequest } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product, ProductDoc } from "../shared/models/product";
 import { Promo } from "../shared/models/promo";
-import { Merchant } from "@ebazdev/customer";
+import { Merchant, Customer, CustomerDoc } from "@ebazdev/customer";
 import mongoose, { FilterQuery } from "mongoose";
+import axios from "axios";
 
 const router = express.Router();
 const validOrderByFields = [
@@ -219,8 +220,8 @@ router.get(
         };
 
         const promoConditions: FilterQuery<any>[] = [];
-        if (promotion) promoConditions.push({ promoTypeId: { $in: [1,2] } });
-        if (discount) promoConditions.push({ promoTypeId: {$in: [3]} });
+        if (promotion) promoConditions.push({ promoTypeId: { $in: [1, 2] } });
+        if (discount) promoConditions.push({ promoTypeId: { $in: [3] } });
 
         if (promoConditions.length > 0) {
           promoQuery.$or = promoConditions;
@@ -257,8 +258,12 @@ router.get(
       }
 
       const merchant = await Merchant.findById(merchantId as string);
+      const customer = (await Customer.findById(
+        customerId as string
+      )) as CustomerDoc | null;
 
       const businessTypeId = new mongoose.Types.ObjectId();
+
       const { products, count: total } = await Product.findWithAdjustedPrice({
         query,
         merchant: {
@@ -269,6 +274,44 @@ router.get(
         limit: limitNumber,
         sort,
       });
+
+      let cocaColaTsId = null;
+      const tradeShops = merchant?.tradeShops ?? [];
+      tradeShops.forEach((shop) => {
+        const { tsId, holdingKey } = shop;
+        cocaColaTsId = holdingKey === "MCSCC" ? tsId : null;
+      });
+
+      // customer ni coca-cola bol hereglegchin colaid r buteegdehuuni data tatah
+      if (
+        customer &&
+        merchant &&
+        customer.type === "supplier" &&
+        customer.regNo === "2663503" &&
+        cocaColaTsId
+      ) {
+        const { merchantProducts, merchantShatlal } =
+          await getPromoProductIds(cocaColaTsId);
+
+        products.map((product: any) => {
+          const thirdPartyData = product.thirdPartyData || [];
+
+          let thirdPartyProductId = 0;
+
+          for (const data of thirdPartyData) {
+            if (data.customerId?.toString() === customerId) {
+              thirdPartyProductId = data.productId;
+            }
+          }
+
+          const merchantProduct = merchantProducts.find(
+            (p: any) => p.productid === thirdPartyProductId
+          );
+
+          product.adjustedPrice.price = merchantProduct?.price || 0;
+          product.inventory.availableStock = merchantProduct?.quantity || 0;
+        });
+      }
 
       res.status(StatusCodes.OK).send({
         data: products,
@@ -284,5 +327,52 @@ router.get(
     }
   }
 );
+
+async function getPromoProductIds(cocaColaTsId = "") {
+  const {
+    COLA_GET_TOKEN_URI,
+    COLA_USERNAME,
+    COLA_PASSWORD,
+    COLA_PRODUCTS_BY_MERCHANTID,
+  } = process.env.NODE_ENV === "development" ? process.env : process.env;
+
+  if (
+    !COLA_GET_TOKEN_URI ||
+    !COLA_USERNAME ||
+    !COLA_PASSWORD ||
+    !COLA_PRODUCTS_BY_MERCHANTID
+  ) {
+    throw new Error("Environment variables are not set");
+  }
+
+  const tokenResponse = await axios.post(COLA_GET_TOKEN_URI, {
+    username: COLA_USERNAME,
+    pass: COLA_PASSWORD,
+  });
+
+  const token = tokenResponse.data.token;
+
+  const productsResponse = await axios.post(
+    COLA_PRODUCTS_BY_MERCHANTID,
+    {
+      tradeshopid: cocaColaTsId,
+    },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      maxBodyLength: Infinity,
+    }
+  );
+  let merchantProducts = productsResponse.data.data;
+  merchantProducts = merchantProducts.map((product: any) => {
+    if (product.quantity < 1000) {
+      product.quantity = 0;
+    }
+    return product;
+  });
+
+  const merchantShatlal = productsResponse.data.shatlal;
+
+  return { merchantProducts, merchantShatlal };
+}
 
 export { router as productListRouter };

@@ -16,6 +16,7 @@ export enum PromoTypeNames {
 interface PromoTypeDoc extends Document {
   name: PromoTypeNames;
   type: PromoTypes;
+  typeId: number;
 }
 
 interface PromoTypeModel extends Model<PromoTypeDoc> {}
@@ -30,6 +31,10 @@ const promoTypeSchema = new Schema<PromoTypeDoc>(
       type: String,
       required: true,
     },
+    typeId: {
+      type: Number,
+      required: true,
+    }
   },
   {
     toJSON: {
