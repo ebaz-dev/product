@@ -5,6 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { Product, ProductDoc } from "../shared/models/product";
 import { Promo } from "../shared/models/promo";
 import { Merchant, Customer, CustomerDoc } from "@ebazdev/customer";
+import { ProductActiveMerchants } from "../shared/models/product-active-merchants";
 import mongoose, { FilterQuery } from "mongoose";
 import axios from "axios";
 
@@ -217,6 +218,26 @@ router.get(
       const customer = (await Customer.findById(
         customerId as string
       )) as CustomerDoc | null;
+
+      let activeProductIds: any = [];
+
+      if (merchantId && customerId === "66ebe3e3c0acbbab7824b195") {
+        const activeProducts = await ProductActiveMerchants.find({
+          entityReferences: { $in: merchantId },
+        }).select("productId");
+
+        if (activeProducts.length > 0) {
+          activeProductIds = activeProducts.map((ap) => ap.productId);
+        }
+      }
+
+      if (
+        !query._id &&
+        customerId &&
+        customerId === "66ebe3e3c0acbbab7824b195"
+      ) {
+        query._id = { $in: activeProductIds };
+      }
 
       let cocaColaTsId = null;
       const tradeShops = merchant?.tradeShops ?? [];
