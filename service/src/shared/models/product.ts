@@ -446,6 +446,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
 productSchema.statics.findOneWithAdjustedPrice = async function (
   params: IFindOneWithAdjustedPrice
 ) {
+
   const product = await this.findOne(params.query)
     .populate({
       path: "inventory",
@@ -479,8 +480,49 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     throw new Error("Product not found");
   }
 
-  const price = await product.getAdjustedPrice(params.merchant);
-  product.adjustedPrice = price.prices;
+  const customerId = product.customerId.toString();
+
+  const merchantId = params.merchant.merchantId;
+  const merchantData = await Merchant.findById(merchantId);
+  let cocaColaTsId = null;
+
+  if (merchantId && customerId === "66ebe3e3c0acbbab7824b195") {
+
+    if (merchantData && merchantData.tradeShops) {
+      const tradeShops = merchantData.tradeShops ?? [];
+      const cocaColaShop = tradeShops.find((shop) => shop.holdingKey === "MCSCC");
+      cocaColaTsId = cocaColaShop ? parseInt(cocaColaShop.tsId, 10) : null;
+    }
+  }
+
+  if (customerId != "66ebe3e3c0acbbab7824b195") {
+    const price = await product.getAdjustedPrice(params.merchant);
+    product.adjustedPrice = price.prices;
+  }
+
+  if (cocaColaTsId && merchantId && customerId === "66ebe3e3c0acbbab7824b195") {
+    const { merchantProducts, merchantShatlal } = await getMerchantProducts(cocaColaTsId);
+
+
+    const thirdPartyData = product.thirdPartyData || [];
+    let thirdPartyProductId = 0;
+
+    for (const data of thirdPartyData) {
+      if (data.customerId?.toString() === customerId) {
+        thirdPartyProductId = data.productId;
+      }
+    }
+
+    const merchantProduct = merchantProducts.find(
+      (p: any) => p.productid === thirdPartyProductId
+    );
+    
+    initializeAdjustedPrice(product);
+    initializeInventory(product);
+
+    product.adjustedPrice.price = merchantProduct?.price || 0;
+    product.inventory.availableStock = merchantProduct?.quantity || 0;
+  }
 
   return product;
 };
