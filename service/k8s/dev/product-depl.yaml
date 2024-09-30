@@ -37,6 +37,14 @@ spec:
               value: '3000'
             - name: NODE_ENV
               value: 'development'
+            - name: COLA_USERNAME
+              value: 'bazaar'
+            - name: COLA_PASSWORD
+              value: 'M8@46jkljkjkljlk#$2024'
+            - name: COLA_GET_TOKEN_URI
+              value: 'http://122.201.28.22:8083/api/tokenbazaar'
+            - name: COLA_PRODUCTS_BY_MERCHANTID
+              value: 'http://122.201.28.22:8083/api/ebazaar/productremains'
           readinessProbe:
             httpGet:
               path: /api/v1/product/health
