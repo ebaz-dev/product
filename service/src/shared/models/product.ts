@@ -139,7 +139,7 @@ interface ProductDoc extends Document {
   isAlcohol?: boolean;
   cityTax?: boolean;
   priority: number;
-  promo?: Promo[];
+  promos?: Promo[];
   favourite?: Types.ObjectId[];
 }
 
