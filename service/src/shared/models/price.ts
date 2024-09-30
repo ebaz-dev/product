@@ -1,4 +1,4 @@
-import { Document, Schema, model, Types, Model } from "mongoose";
+import { Document, Schema, model, Types } from "mongoose";
 import { updateIfCurrentPlugin } from "mongoose-update-if-current";
 
 export interface Price {

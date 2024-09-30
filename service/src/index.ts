@@ -4,6 +4,7 @@ import { natsWrapper } from "./nats-wrapper";
 import { InventoryCreatedListener } from "./events/listener/inventory-created-listener";
 import { ColaNewProductListener } from "./events/listener/cola-new-product-listener";
 import { ColaPromoListener } from "./events/listener/cola-new -promo-listener";
+import { ColaMerchantProductsUpdatedListener } from "./events/listener/cola-merchant-products-updated";
 
 const start = async () => {
   if (!process.env.PORT) {
@@ -46,6 +47,7 @@ const start = async () => {
     new InventoryCreatedListener(natsWrapper.client).listen();
     new ColaNewProductListener(natsWrapper.client).listen();
     new ColaPromoListener(natsWrapper.client).listen();
+    new ColaMerchantProductsUpdatedListener(natsWrapper.client).listen();
 
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to DB");

@@ -1,21 +1,21 @@
 import { Document, Schema, model, Types } from "mongoose";
 import { updateIfCurrentPlugin } from "mongoose-update-if-current";
 
-export interface Price {
-  price: number;
-  cost: number;
+export enum ProductActiveMerchantsType {
+  default = "default",
+  merchantCategory = "merchantCategory",
+  custom = "custom",
 }
 
-interface ProductPriceDoc extends Document {
+interface productActiveMerchantsDoc extends Document {
   id: Types.ObjectId;
   productId: Types.ObjectId;
-  type: string;
+  type: ProductActiveMerchantsType;
   level: number;
-  entityReferences: String[];
-  prices: Price;
+  entityReferences: string[];
 }
 
-const productPriceSchema = new Schema<ProductPriceDoc>(
+const productActiveMerchantsSchema = new Schema<productActiveMerchantsDoc>(
   {
     productId: {
       type: Schema.Types.ObjectId,
@@ -25,6 +25,7 @@ const productPriceSchema = new Schema<ProductPriceDoc>(
     type: {
       type: String,
       required: true,
+      enum: Object.values(ProductActiveMerchantsType),
     },
     level: {
       type: Number,
@@ -33,16 +34,7 @@ const productPriceSchema = new Schema<ProductPriceDoc>(
     entityReferences: {
       type: [String],
       required: true,
-    },
-    prices: {
-      price: {
-        type: Number,
-        required: true,
-      },
-      cost: {
-        type: Number,
-        required: true,
-      },
+      ref: "Merchant",
     },
   },
   {
@@ -57,8 +49,11 @@ const productPriceSchema = new Schema<ProductPriceDoc>(
   }
 );
 
-productPriceSchema.plugin(updateIfCurrentPlugin);
+productActiveMerchantsSchema.plugin(updateIfCurrentPlugin);
 
-const ProductPrice = model<ProductPriceDoc>("ProductPrice", productPriceSchema);
+const ProductActiveMerchants = model<productActiveMerchantsDoc>(
+  "ProductActiveMerchants",
+  productActiveMerchantsSchema
+);
 
-export { ProductPrice, ProductPriceDoc };
+export { ProductActiveMerchants };
