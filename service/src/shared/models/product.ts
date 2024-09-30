@@ -4,6 +4,7 @@ import { ProductPrice, Price } from "./price";
 import { Brand } from "./brand";
 import { ProductCategory } from "./category";
 import { Promo } from "./promo";
+import { Merchant } from "@ebazdev/customer";
 import mongoose from "mongoose";
 
 interface AdjustedPrice {
@@ -335,6 +336,16 @@ productSchema.pre("save", async function (next) {
 productSchema.statics.findWithAdjustedPrice = async function (
   params: IfindWithAdjustedPrice
 ) {
+  const merchantId = params.merchant.merchantId;
+  const merchantData = await Merchant.findById(merchantId);
+
+  let cocaColaTsId = null;
+  if (merchantData) {
+    const tradeShops = merchantData.tradeShops ?? [];
+    const cocaColaShop = tradeShops.find((shop) => shop.holdingKey === "MCSCC");
+    cocaColaTsId = cocaColaShop ? parseInt(cocaColaShop.tsId, 10) : null;
+  }
+
   const count = await this.countDocuments(params.query);
   const products = await this.find(params.query)
     .skip(params.skip)
@@ -365,6 +376,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
         startDate: { $lte: new Date() },
         endDate: { $gte: new Date() },
         isActive: true,
+        tradeshops: { $in: [cocaColaTsId] },
       },
     });
 

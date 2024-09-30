@@ -212,6 +212,19 @@ router.get(
         sort.priority = 1;
       }
 
+      const merchant = await Merchant.findById(merchantId as string);
+
+      const customer = (await Customer.findById(
+        customerId as string
+      )) as CustomerDoc | null;
+
+      let cocaColaTsId = null;
+      const tradeShops = merchant?.tradeShops ?? [];
+      tradeShops.forEach((shop) => {
+        const { tsId, holdingKey } = shop;
+        cocaColaTsId = holdingKey === "MCSCC" ? tsId : null;
+      });
+
       if (promotion || discount) {
         const promoQuery: FilterQuery<any> = {
           isActive: true,
@@ -225,6 +238,10 @@ router.get(
 
         if (promoConditions.length > 0) {
           promoQuery.$or = promoConditions;
+        }
+
+        if (cocaColaTsId !== null) {
+          promoQuery.tradeshops = { $in: [cocaColaTsId] };
         }
 
         const promos = await Promo.find(promoQuery).select("products");
@@ -257,13 +274,7 @@ router.get(
         };
       }
 
-      const merchant = await Merchant.findById(merchantId as string);
-      const customer = (await Customer.findById(
-        customerId as string
-      )) as CustomerDoc | null;
-
       const businessTypeId = new mongoose.Types.ObjectId();
-
       const { products, count: total } = await Product.findWithAdjustedPrice({
         query,
         merchant: {
@@ -275,14 +286,6 @@ router.get(
         sort,
       });
 
-      let cocaColaTsId = null;
-      const tradeShops = merchant?.tradeShops ?? [];
-      tradeShops.forEach((shop) => {
-        const { tsId, holdingKey } = shop;
-        cocaColaTsId = holdingKey === "MCSCC" ? tsId : null;
-      });
-
-      // customer ni coca-cola bol hereglegchin colaid r buteegdehuuni data tatah
       if (
         customer &&
         merchant &&
