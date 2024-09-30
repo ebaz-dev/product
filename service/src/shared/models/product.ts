@@ -365,6 +365,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
 
   let query = { ...params.query };
 
+  //check
   // if (merchantId && params.query.customerId === "66ebe3e3c0acbbab7824b195") {
   //   query = { ...query, _id: { $in: activeProductIds } };
   // }
