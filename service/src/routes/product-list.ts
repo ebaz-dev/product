@@ -286,36 +286,6 @@ router.get(
         sort,
       });
 
-      if (
-        customer &&
-        merchant &&
-        customer.type === "supplier" &&
-        customer.regNo === "2663503" &&
-        cocaColaTsId
-      ) {
-        const { merchantProducts, merchantShatlal } =
-          await getPromoProductIds(cocaColaTsId);
-
-        products.map((product: any) => {
-          const thirdPartyData = product.thirdPartyData || [];
-
-          let thirdPartyProductId = 0;
-
-          for (const data of thirdPartyData) {
-            if (data.customerId?.toString() === customerId) {
-              thirdPartyProductId = data.productId;
-            }
-          }
-
-          const merchantProduct = merchantProducts.find(
-            (p: any) => p.productid === thirdPartyProductId
-          );
-
-          product.adjustedPrice.price = merchantProduct?.price || 0;
-          product.inventory.availableStock = merchantProduct?.quantity || 0;
-        });
-      }
-
       res.status(StatusCodes.OK).send({
         data: products,
         total: total,
@@ -330,52 +300,5 @@ router.get(
     }
   }
 );
-
-async function getPromoProductIds(cocaColaTsId = "") {
-  const {
-    COLA_GET_TOKEN_URI,
-    COLA_USERNAME,
-    COLA_PASSWORD,
-    COLA_PRODUCTS_BY_MERCHANTID,
-  } = process.env.NODE_ENV === "development" ? process.env : process.env;
-
-  if (
-    !COLA_GET_TOKEN_URI ||
-    !COLA_USERNAME ||
-    !COLA_PASSWORD ||
-    !COLA_PRODUCTS_BY_MERCHANTID
-  ) {
-    throw new Error("Environment variables are not set");
-  }
-
-  const tokenResponse = await axios.post(COLA_GET_TOKEN_URI, {
-    username: COLA_USERNAME,
-    pass: COLA_PASSWORD,
-  });
-
-  const token = tokenResponse.data.token;
-
-  const productsResponse = await axios.post(
-    COLA_PRODUCTS_BY_MERCHANTID,
-    {
-      tradeshopid: cocaColaTsId,
-    },
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      maxBodyLength: Infinity,
-    }
-  );
-  let merchantProducts = productsResponse.data.data;
-  merchantProducts = merchantProducts.map((product: any) => {
-    if (product.quantity < 1000) {
-      product.quantity = 0;
-    }
-    return product;
-  });
-
-  const merchantShatlal = productsResponse.data.shatlal;
-
-  return { merchantProducts, merchantShatlal };
-}
 
 export { router as productListRouter };

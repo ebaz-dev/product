@@ -4,9 +4,10 @@ import { ProductPrice, Price } from "./price";
 import { Brand } from "./brand";
 import { ProductCategory } from "./category";
 import { Promo } from "./promo";
-import { Merchant } from "@ebazdev/customer";
+import { Merchant } from "@ebazdev/customer"; 
+import { ProductActiveMerchants } from "./product-active-merchants";
 import mongoose from "mongoose";
-// import axios from "axios";
+import axios from "axios";
 
 interface AdjustedPrice {
   prices: Types.ObjectId;
@@ -339,16 +340,37 @@ productSchema.statics.findWithAdjustedPrice = async function (
 ) {
   const merchantId = params.merchant.merchantId;
   const merchantData = await Merchant.findById(merchantId);
-
+  let activeProductIds: any = []
   let cocaColaTsId = null;
-  if (merchantData) {
-    const tradeShops = merchantData.tradeShops ?? [];
-    const cocaColaShop = tradeShops.find((shop) => shop.holdingKey === "MCSCC");
-    cocaColaTsId = cocaColaShop ? parseInt(cocaColaShop.tsId, 10) : null;
+
+  if (merchantId && params.query.customerId === "66ebe3e3c0acbbab7824b195") {
+    const activeProducts = await ProductActiveMerchants.find({
+      entityReferences: merchantId.toString(),
+    }).select('productId');
+
+    if(activeProducts.length > 0) {
+      activeProductIds = activeProducts.map((ap) => ap.productId);
+    }
+
+    if (merchantData && merchantData.tradeShops) {
+      const tradeShops = merchantData.tradeShops ?? [];
+      const cocaColaShop = tradeShops.find((shop) => shop.holdingKey === "MCSCC");
+      cocaColaTsId = cocaColaShop ? parseInt(cocaColaShop.tsId, 10) : null;
+    }
+
+    if (activeProductIds.length === 0) {
+      return { products: [], count: 0 };
+    }
   }
 
-  const count = await this.countDocuments(params.query);
-  const products = await this.find(params.query)
+  let query = { ...params.query };
+
+  if (merchantId && params.query.customerId === "66ebe3e3c0acbbab7824b195") {
+    query = { ...query, _id: { $in: activeProductIds } };
+  }
+
+  const count = await this.countDocuments(query);
+  const products = await this.find(query)
     .skip(params.skip)
     .limit(params.limit)
     .sort(params.sort)
@@ -381,32 +403,42 @@ productSchema.statics.findWithAdjustedPrice = async function (
       },
     });
 
-  for (const product of products) {
-    const price = await product.getAdjustedPrice(params.merchant);
-    product.adjustedPrice = price.prices;
+  if (products.length === 0) {
+    return { products, count };
   }
 
-  // if (cocaColaTsId) {
-  //   const { merchantProducts, merchantShatlal } = await getMerchantProducts(cocaColaTsId);
+  if (params.query.customerId != "66ebe3e3c0acbbab7824b195") {
+    for (const product of products) {
+      const price = await product.getAdjustedPrice(params.merchant);
+      product.adjustedPrice = price.prices;
+    }
+    return { products, count };
+  }
 
-  //   products.map((product: any) => {
-  //     const thirdPartyData = product.thirdPartyData || [];
-  //     let thirdPartyProductId = 0;
+  if (cocaColaTsId && merchantId && params.query.customerId === "66ebe3e3c0acbbab7824b195") {
+    const { merchantProducts, merchantShatlal } = await getMerchantProducts(cocaColaTsId);
 
-  //     for (const data of thirdPartyData) {
-  //       if (data.customerId?.toString() === params.query.customerId) {
-  //         thirdPartyProductId = data.productId;
-  //       }
-  //     }
+    products.map((product: any) => {
+      const thirdPartyData = product.thirdPartyData || [];
+      let thirdPartyProductId = 0;
 
-  //     const merchantProduct = merchantProducts.find(
-  //       (p: any) => p.productid === thirdPartyProductId
-  //     );
-  //     // console.log(merchantProduct);
-  //     // product.adjustedPrice.price = merchantProduct?.price || 0;
-  //     // product.inventory.availableStock = merchantProduct?.quantity || 0;
-  //   });
-  // }
+      for (const data of thirdPartyData) {
+        if (data.customerId?.toString() === params.query.customerId) {
+          thirdPartyProductId = data.productId;
+        }
+      }
+
+      const merchantProduct = merchantProducts.find(
+        (p: any) => p.productid === thirdPartyProductId
+      );
+
+      initializeAdjustedPrice(product);
+      initializeInventory(product);
+
+      product.adjustedPrice.price = merchantProduct?.price || 0;
+      product.inventory.availableStock = merchantProduct?.quantity || 0;
+    });
+  }
 
   return { products, count };
 };
@@ -459,6 +491,10 @@ productSchema.methods.getAdjustedPrice = async function (externalData: {
 }) {
   const productPrices = await ProductPrice.find({ productId: this._id });
 
+  if (productPrices.length === 0) {
+    return { prices: { price: 0, cost: 0 } };
+  }
+
   productPrices.sort((a, b) => b.level - a.level);
 
   let selectedPrice = productPrices[0];
@@ -495,49 +531,46 @@ const Product = model<ProductDoc, ProductModel>("Product", productSchema);
 
 export { Product, ProductDoc };
 
-// async function getMerchantProducts(cocaColaTsId = 0) {
-//   const {
-//     COLA_GET_TOKEN_URI,
-//     COLA_USERNAME,
-//     COLA_PASSWORD,
-//     COLA_PRODUCTS_BY_MERCHANTID,
-//   } = process.env.NODE_ENV === "development" ? process.env : process.env;
+async function getMerchantProducts(cocaColaTsId = 0) {
+  try {
+    const tokenResponse = await axios.post(process.env.COLA_GET_TOKEN_URI!, {
+      username: process.env.COLA_USERNAME!,
+      pass: process.env.COLA_PASSWORD!,
+    });
 
-//   if (
-//     !COLA_GET_TOKEN_URI ||
-//     !COLA_USERNAME ||
-//     !COLA_PASSWORD ||
-//     !COLA_PRODUCTS_BY_MERCHANTID
-//   ) {
-//     throw new Error("Environment variables are not set");
-//   }
+    const token = tokenResponse.data.token;
 
-//   const tokenResponse = await axios.post(COLA_GET_TOKEN_URI, {
-//     username: COLA_USERNAME,
-//     pass: COLA_PASSWORD,
-//   });
+    const productsResponse = await axios.post(
+      process.env.COLA_PRODUCTS_BY_MERCHANTID!,
+      { tradeshopid: cocaColaTsId },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        maxBodyLength: Infinity,
+      }
+    );
 
-//   const token = tokenResponse.data.token;
+    let merchantProducts = productsResponse.data.data.map((product: any) => {
+      if (product.quantity < 1000) {
+        product.quantity = 0;
+      }
+      return product;
+    });
 
-//   const productsResponse = await axios.post(
-//     COLA_PRODUCTS_BY_MERCHANTID,
-//     {
-//       tradeshopid: cocaColaTsId,
-//     },
-//     {
-//       headers: { Authorization: `Bearer ${token}` },
-//       maxBodyLength: Infinity,
-//     }
-//   );
-//   let merchantProducts = productsResponse.data.data;
-//   merchantProducts = merchantProducts.map((product: any) => {
-//     if (product.quantity < 1000) {
-//       product.quantity = 0;
-//     }
-//     return product;
-//   });
+    return { merchantProducts, merchantShatlal: productsResponse.data.shatlal };
+  } catch (error) {
+    console.error("Error fetching merchant products:", error);
+    throw new Error("Failed to fetch merchant products");
+  }
+}
 
-//   const merchantShatlal = productsResponse.data.shatlal;
+const initializeAdjustedPrice = (product: any) => {
+  if (!product.adjustedPrice) {
+    product.adjustedPrice = { price: 0, cost: 0 };
+  }
+};
 
-//   return { merchantProducts, merchantShatlal };
-// }
+const initializeInventory = (product: any) => {
+  if (!product.inventory) {
+    product.inventory = { availableStock: 0, reservedStock: 0, totalStock: 0 };
+  }
+};
