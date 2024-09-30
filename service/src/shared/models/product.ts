@@ -4,7 +4,7 @@ import { ProductPrice, Price } from "./price";
 import { Brand } from "./brand";
 import { ProductCategory } from "./category";
 import { Promo } from "./promo";
-import { Merchant } from "@ebazdev/customer"; 
+import { Merchant } from "@ebazdev/customer";
 import { ProductActiveMerchants } from "./product-active-merchants";
 import mongoose from "mongoose";
 import axios from "axios";
@@ -340,21 +340,23 @@ productSchema.statics.findWithAdjustedPrice = async function (
 ) {
   const merchantId = params.merchant.merchantId;
   const merchantData = await Merchant.findById(merchantId);
-  let activeProductIds: any = []
+  let activeProductIds: any = [];
   let cocaColaTsId = null;
 
   if (merchantId && params.query.customerId === "66ebe3e3c0acbbab7824b195") {
     const activeProducts = await ProductActiveMerchants.find({
       entityReferences: merchantId.toString(),
-    }).select('productId');
+    }).select("productId");
 
-    if(activeProducts.length > 0) {
+    if (activeProducts.length > 0) {
       activeProductIds = activeProducts.map((ap) => ap.productId);
     }
 
     if (merchantData && merchantData.tradeShops) {
       const tradeShops = merchantData.tradeShops ?? [];
-      const cocaColaShop = tradeShops.find((shop) => shop.holdingKey === "MCSCC");
+      const cocaColaShop = tradeShops.find(
+        (shop) => shop.holdingKey === "MCSCC"
+      );
       cocaColaTsId = cocaColaShop ? parseInt(cocaColaShop.tsId, 10) : null;
     }
 
@@ -364,11 +366,6 @@ productSchema.statics.findWithAdjustedPrice = async function (
   }
 
   let query = { ...params.query };
-
-  //check
-  // if (merchantId && params.query.customerId === "66ebe3e3c0acbbab7824b195") {
-  //   query = { ...query, _id: { $in: activeProductIds } };
-  // }
 
   const count = await this.countDocuments(query);
   const products = await this.find(query)
@@ -416,8 +413,13 @@ productSchema.statics.findWithAdjustedPrice = async function (
     return { products, count };
   }
 
-  if (cocaColaTsId && merchantId && params.query.customerId === "66ebe3e3c0acbbab7824b195") {
-    const { merchantProducts, merchantShatlal } = await getMerchantProducts(cocaColaTsId);
+  if (
+    cocaColaTsId &&
+    merchantId &&
+    params.query.customerId === "66ebe3e3c0acbbab7824b195"
+  ) {
+    const { merchantProducts, merchantShatlal } =
+      await getMerchantProducts(cocaColaTsId);
 
     products.map((product: any) => {
       const thirdPartyData = product.thirdPartyData || [];
@@ -447,7 +449,6 @@ productSchema.statics.findWithAdjustedPrice = async function (
 productSchema.statics.findOneWithAdjustedPrice = async function (
   params: IFindOneWithAdjustedPrice
 ) {
-
   const product = await this.findOne(params.query)
     .populate({
       path: "inventory",
@@ -488,10 +489,11 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
   let cocaColaTsId = null;
 
   if (merchantId && customerId === "66ebe3e3c0acbbab7824b195") {
-
     if (merchantData && merchantData.tradeShops) {
       const tradeShops = merchantData.tradeShops ?? [];
-      const cocaColaShop = tradeShops.find((shop) => shop.holdingKey === "MCSCC");
+      const cocaColaShop = tradeShops.find(
+        (shop) => shop.holdingKey === "MCSCC"
+      );
       cocaColaTsId = cocaColaShop ? parseInt(cocaColaShop.tsId, 10) : null;
     }
   }
@@ -502,8 +504,8 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
   }
 
   if (cocaColaTsId && merchantId && customerId === "66ebe3e3c0acbbab7824b195") {
-    const { merchantProducts, merchantShatlal } = await getMerchantProducts(cocaColaTsId);
-
+    const { merchantProducts, merchantShatlal } =
+      await getMerchantProducts(cocaColaTsId);
 
     const thirdPartyData = product.thirdPartyData || [];
     let thirdPartyProductId = 0;
@@ -576,10 +578,11 @@ export { Product, ProductDoc };
 
 async function getMerchantProducts(cocaColaTsId = 0) {
   try {
-    const COLA_GET_TOKEN_URI = "http://122.201.28.22:8083/api/tokenbazaar"
-    const COLA_USERNAME = "bazaar"
-    const COLA_PASSWORD = "M8@46jkljkjkljlk#$2024"
-    const COLA_PRODUCTS_BY_MERCHANTID = "http://122.201.28.22:8083/api/ebazaar/productremains"
+    const COLA_GET_TOKEN_URI = "http://122.201.28.22:8083/api/tokenbazaar";
+    const COLA_USERNAME = "bazaar";
+    const COLA_PASSWORD = "M8@46jkljkjkljlk#$2024";
+    const COLA_PRODUCTS_BY_MERCHANTID =
+      "http://122.201.28.22:8083/api/ebazaar/productremains";
 
     const tokenResponse = await axios.post(COLA_GET_TOKEN_URI!, {
       username: COLA_USERNAME,
