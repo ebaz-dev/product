@@ -433,7 +433,8 @@ productSchema.statics.findWithAdjustedPrice = async function (
       }
       
       const merchantProduct = merchantProducts.find(
-        (p: any) => p.productid.trim() === thirdPartyProductId.toString()
+        (p: any) => p.productid === thirdPartyProductId
+        // (p: any) => p.productid.trim() === thirdPartyProductId.toString()
       );
 
       initializeAdjustedPrice(product);
@@ -517,7 +518,8 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
       }
     }
     const merchantProduct = merchantProducts.find(
-      (p: any) => p.productid.trim() === thirdPartyProductId.toString()
+      // (p: any) => p.productid.trim() === thirdPartyProductId.toString()
+      (p: any) => p.productid === thirdPartyProductId
     );
 
     initializeAdjustedPrice(product);
