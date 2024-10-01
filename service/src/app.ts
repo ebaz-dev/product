@@ -40,7 +40,7 @@ app.use(
 );
 
 app.use(apiPrefix, healthRouter);
-
+// test
 // Price routes
 app.use(apiPrefix, pricesRouter);
 app.use(apiPrefix, priceRouter);
