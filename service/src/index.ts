@@ -5,6 +5,7 @@ import { InventoryCreatedListener } from "./events/listener/inventory-created-li
 import { ColaNewProductListener } from "./events/listener/cola-new-product-listener";
 import { ColaPromoListener } from "./events/listener/cola-new -promo-listener";
 import { ColaMerchantProductsUpdatedListener } from "./events/listener/cola-merchant-products-updated";
+import { ColaAPIClient } from "./shared";
 
 const start = async () => {
   if (!process.env.PORT) {
