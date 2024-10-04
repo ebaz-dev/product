@@ -21,6 +21,7 @@ import { categoriesRouter } from "./routes/category-list";
 import { promoCreateRouter } from "./routes/promo-type-create";
 import { promoGetRouter } from "./routes/promo-get";
 import { productListBymerchantIdRouter } from "./routes/merchant-product-list";
+import { dashboardProductListRouter } from "./routes/dashboard-product-list";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import { healthRouter } from "./routes/health";
@@ -71,6 +72,7 @@ app.use(apiPrefix, productListRouter);
 app.use(apiPrefix, productGetRouter);
 app.use(apiPrefix, productBulkUpdateRouter);
 app.use(apiPrefix, productUpdateRouter);
+app.use(apiPrefix, dashboardProductListRouter);
 
 app.all("*", async () => {
   console.log("router not found");
