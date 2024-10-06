@@ -12,7 +12,7 @@ import mongoose from "mongoose";
 import slugify from "slugify";
 import { natsWrapper } from "../../nats-wrapper";
 
-const totalId = process.env.TOTAL_CUSTOMER_ID
+const totalId = process.env.TOTAL_CUSTOMER_ID;
 
 export class TotalProductRecievedListener extends Listener<TotalNewProductEvent> {
   readonly subject = TotalProductSubjects.NewProductFound;
@@ -35,17 +35,16 @@ export class TotalProductRecievedListener extends Listener<TotalNewProductEvent>
         barcode,
       } = data;
 
-      const totalCustomerId = new mongoose.Types.ObjectId(
-        totalId
-      );
+      const totalCustomerId = new mongoose.Types.ObjectId(totalId);
 
-      const checkProduct = await Product.find({
+      // Check if the product already exists
+      const checkProduct = await Product.findOne({
         customerId: totalCustomerId,
         "thirdPartyData.customerId": totalCustomerId,
         "thirdPartyData.productId": productId,
       }).session(session);
 
-      if (checkProduct.length > 0) {
+      if (checkProduct) {
         console.log("Product already exists in the database");
         await session.abortTransaction();
         session.endSession();
@@ -66,7 +65,6 @@ export class TotalProductRecievedListener extends Listener<TotalNewProductEvent>
         thirdPartyData: [{ customerId: totalCustomerId, productId: productId }],
         inCase: incase,
         isActive: false,
-        priority: 0,
       });
 
       await product.save({ session });
