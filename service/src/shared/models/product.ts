@@ -246,7 +246,7 @@ const productSchema = new Schema<ProductDoc>(
     },
     priority: {
       type: Number,
-      required: true,
+      required: false,
     },
     favourite: {
       type: [Schema.Types.ObjectId],
