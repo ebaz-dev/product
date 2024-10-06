@@ -320,21 +320,21 @@ productSchema
     this._adjustedPrice = price;
   });
 
-productSchema.pre("save", async function (next) {
-  if (this.isNew) {
-    const ProductModel = this.constructor as mongoose.Model<ProductDoc>;
+// productSchema.pre("save", async function (next) {
+//   if (this.isNew) {
+//     const ProductModel = this.constructor as mongoose.Model<ProductDoc>;
 
-    // Ensure atomic priority assignment
-    const highestPriorityProduct = await ProductModel.findOneAndUpdate(
-      { customerId: this.customerId }, // Filter by customerId
-      { $inc: { priority: 1 } }, // Increment priority atomically
-      { sort: { priority: -1 }, new: true, upsert: true } // Get the highest priority product
-    );
+//     // Ensure atomic priority assignment
+//     const highestPriorityProduct = await ProductModel.findOneAndUpdate(
+//       { customerId: this.customerId }, // Filter by customerId
+//       { $inc: { priority: 1 } }, // Increment priority atomically
+//       { sort: { priority: -1 }, new: true, upsert: true } // Get the highest priority product
+//     );
 
-    this.priority = highestPriorityProduct ? highestPriorityProduct.priority + 1 : 1;
-  }
-  next();
-});
+//     this.priority = highestPriorityProduct ? highestPriorityProduct.priority + 1 : 1;
+//   }
+//   next();
+// });
 
 
 productSchema.statics.findWithAdjustedPrice = async function (
