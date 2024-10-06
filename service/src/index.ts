@@ -5,6 +5,7 @@ import { InventoryCreatedListener } from "./events/listener/inventory-created-li
 import { ColaNewProductListener } from "./events/listener/cola-new-product-listener";
 import { ColaPromoListener } from "./events/listener/cola-new -promo-listener";
 import { ColaMerchantProductsUpdatedListener } from "./events/listener/cola-merchant-products-updated";
+import { TotalProductRecievedListener } from "./events/listener/total-product-recieved-listener";
 import { ColaAPIClient } from "./shared";
 
 const start = async () => {
@@ -59,6 +60,7 @@ const start = async () => {
     new ColaNewProductListener(natsWrapper.client).listen();
     new ColaPromoListener(natsWrapper.client).listen();
     new ColaMerchantProductsUpdatedListener(natsWrapper.client).listen();
+    new TotalProductRecievedListener(natsWrapper.client).listen();
 
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to DB");

@@ -15,7 +15,8 @@ module.exports = {
         COLA_USERNAME: "bazaar",
         COLA_PASSWORD: "M8@46jkljkjkljlk#$2024",
         COLA_GET_TOKEN_URI: "http://122.201.28.22:8083/api/tokenbazaar",
-        COLA_PRODUCTS_BY_MERCHANTID: "http://122.201.28.22:8083/api/ebazaar/productremains"
+        COLA_PRODUCTS_BY_MERCHANTID: "http://122.201.28.22:8083/api/ebazaar/productremains",
+        TOTAL_CUSTOMER_ID: "66f12d655e36613db5743430"
       },
       env_stag: {
         NODE_ENV: "stag",
@@ -25,7 +26,8 @@ module.exports = {
         COLA_USERNAME: "bazaar",
         COLA_PASSWORD: "M8@46jkljkjkljlk#$2024",
         COLA_GET_TOKEN_URI: "http://122.201.28.22:8083/api/tokenbazaar",
-        COLA_PRODUCTS_BY_MERCHANTID: "http://122.201.28.22:8083/api/ebazaar/productremains"
+        COLA_PRODUCTS_BY_MERCHANTID: "http://122.201.28.22:8083/api/ebazaar/productremains",
+        TOTAL_CUSTOMER_ID: "66f12d655e36613db5743430"
       },
       env_production: {
         NODE_ENV: "production",
@@ -35,7 +37,8 @@ module.exports = {
         COLA_USERNAME: "bazaar",
         COLA_PASSWORD: "M8@46jkljkjkljlk#$2024",
         COLA_GET_TOKEN_URI: "http://122.201.28.22:8083/api/tokenbazaar",
-        COLA_PRODUCTS_BY_MERCHANTID: "http://122.201.28.22:8083/api/ebazaar/productremains"
+        COLA_PRODUCTS_BY_MERCHANTID: "http://122.201.28.22:8083/api/ebazaar/productremains",
+        TOTAL_CUSTOMER_ID: "66f12d655e36613db5743430"
       },
     },
   ],

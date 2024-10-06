@@ -45,6 +45,8 @@ spec:
               value: 'http://122.201.28.22:8083/api/tokenbazaar'
             - name: COLA_PRODUCTS_BY_MERCHANTID
               value: 'http://122.201.28.22:8083/api/ebazaar/productremains'
+            - name: TOTAL_CUSTOMER_ID
+              value: "66f12d655e36613db5743430"
           readinessProbe:
             httpGet:
               path: /api/v1/product/health
