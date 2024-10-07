@@ -336,16 +336,21 @@ productSchema
 //   next();
 // });
 
-
 productSchema.statics.findWithAdjustedPrice = async function (
   params: IfindWithAdjustedPrice
 ) {
   const merchantId = params.merchant.merchantId;
   const merchantData = await Merchant.findById(merchantId);
   let activeProductIds: any = [];
-  let cocaColaTsId = null;
 
-  if (merchantId && params.query.customerId === "66ebe3e3c0acbbab7824b195") {
+  let cocaColaTsId = null;
+  let totalTsId = null;
+
+  if (
+    merchantId &&
+    (params.query.customerId === "66ebe3e3c0acbbab7824b195" ||
+      params.query.customerId === "66f12d655e36613db5743430")
+  ) {
     const activeProducts = await ProductActiveMerchants.find({
       entityReferences: merchantId.toString(),
     }).select("productId");
@@ -354,12 +359,19 @@ productSchema.statics.findWithAdjustedPrice = async function (
       activeProductIds = activeProducts.map((ap) => ap.productId);
     }
 
-    if (merchantData && merchantData.tradeShops) {
-      const tradeShops = merchantData.tradeShops ?? [];
-      const cocaColaShop = tradeShops.find(
-        (shop) => shop.holdingKey === "MCSCC"
-      );
-      cocaColaTsId = cocaColaShop ? parseInt(cocaColaShop.tsId, 10) : null;
+    if (merchantData?.tradeShops) {
+      const tradeShops = merchantData.tradeShops;
+      if (params.query.customerId === "66ebe3e3c0acbbab7824b195") {
+        const cocaColaShop = tradeShops.find(
+          (shop) => shop.holdingKey === "MCSCC"
+        );
+        cocaColaTsId = cocaColaShop ? parseInt(cocaColaShop.tsId, 10) : null;
+      }
+
+      if (params.query.customerId === "66f12d655e36613db5743430") {
+        const totalShop = tradeShops.find((shop) => shop.holdingKey === "TD");
+        totalTsId = totalShop ? parseInt(totalShop.tsId, 10) : null;
+      }
     }
 
     if (activeProductIds.length === 0) {
@@ -399,7 +411,9 @@ productSchema.statics.findWithAdjustedPrice = async function (
         startDate: { $lte: new Date() },
         endDate: { $gte: new Date() },
         isActive: true,
-        tradeshops: { $in: [cocaColaTsId] },
+        tradeshops: {
+          $in: [cocaColaTsId, totalTsId].filter((tsId) => tsId !== null),
+        },
       },
     });
 
@@ -407,7 +421,10 @@ productSchema.statics.findWithAdjustedPrice = async function (
     return { products, count };
   }
 
-  if (params.query.customerId != "66ebe3e3c0acbbab7824b195") {
+  if (
+    params.query.customerId != "66ebe3e3c0acbbab7824b195" &&
+    params.query.customerId != "66f12d655e36613db5743430"
+  ) {
     for (const product of products) {
       const price = await product.getAdjustedPrice(params.merchant);
       product.adjustedPrice = price.prices;
@@ -433,7 +450,39 @@ productSchema.statics.findWithAdjustedPrice = async function (
           thirdPartyProductId = data.productId;
         }
       }
-      
+
+      const merchantProduct = merchantProducts.find(
+        (p: any) => p.productid === thirdPartyProductId
+        // (p: any) => p.productid.trim() === thirdPartyProductId.toString()
+      );
+
+      initializeAdjustedPrice(product);
+      initializeInventory(product);
+
+      product.adjustedPrice.price = merchantProduct?.price || 0;
+      product.inventory.availableStock = merchantProduct?.quantity || 0;
+    });
+  }
+
+  if (
+    totalTsId &&
+    merchantId &&
+    params.query.customerId === "66f12d655e36613db5743430"
+  ) {
+    const { merchantProducts, merchantShatlal } =
+      await getTotalMerchantProducts(totalTsId);
+
+    products.map((product: any) => {
+      const thirdPartyData = product.thirdPartyData || [];
+
+      let thirdPartyProductId = 0;
+
+      for (const data of thirdPartyData) {
+        if (data.customerId?.toString() === params.query.customerId) {
+          thirdPartyProductId = data.productId;
+        }
+      }
+
       const merchantProduct = merchantProducts.find(
         (p: any) => p.productid === thirdPartyProductId
         // (p: any) => p.productid.trim() === thirdPartyProductId.toString()
@@ -490,7 +539,9 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
 
   const merchantId = params.merchant.merchantId;
   const merchantData = await Merchant.findById(merchantId);
+
   let cocaColaTsId = null;
+  let totalTsId = null;
 
   if (merchantId && customerId === "66ebe3e3c0acbbab7824b195") {
     if (merchantData && merchantData.tradeShops) {
@@ -502,7 +553,18 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     }
   }
 
-  if (customerId != "66ebe3e3c0acbbab7824b195") {
+  if (merchantId && customerId === "66f12d655e36613db5743430") {
+    if (merchantData && merchantData.tradeShops) {
+      const tradeShops = merchantData.tradeShops ?? [];
+      const totalColaShop = tradeShops.find((shop) => shop.holdingKey === "TD");
+      totalTsId = totalColaShop ? parseInt(totalColaShop.tsId, 10) : null;
+    }
+  }
+
+  if (
+    customerId != "66ebe3e3c0acbbab7824b195" &&
+    customerId != "66f12d655e36613db5743430"
+  ) {
     const price = await product.getAdjustedPrice(params.merchant);
     product.adjustedPrice = price.prices;
   }
@@ -510,6 +572,30 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
   if (cocaColaTsId && merchantId && customerId === "66ebe3e3c0acbbab7824b195") {
     const { merchantProducts, merchantShatlal } =
       await getMerchantProducts(cocaColaTsId);
+
+    const thirdPartyData = product.thirdPartyData || [];
+    let thirdPartyProductId = 0;
+
+    for (const data of thirdPartyData) {
+      if (data.customerId?.toString() === customerId) {
+        thirdPartyProductId = data.productId;
+      }
+    }
+    const merchantProduct = merchantProducts.find(
+      // (p: any) => p.productid.trim() === thirdPartyProductId.toString()
+      (p: any) => p.productid === thirdPartyProductId
+    );
+
+    initializeAdjustedPrice(product);
+    initializeInventory(product);
+
+    product.adjustedPrice.price = merchantProduct?.price || 0;
+    product.inventory.availableStock = merchantProduct?.quantity || 0;
+  }
+
+  if (totalTsId && merchantId && customerId === "66f12d655e36613db5743430") {
+    const { merchantProducts, merchantShatlal } =
+      await getTotalMerchantProducts(totalTsId);
 
     const thirdPartyData = product.thirdPartyData || [];
     let thirdPartyProductId = 0;
@@ -615,6 +701,45 @@ async function getMerchantProducts(cocaColaTsId = 0) {
   } catch (error) {
     console.error("Error fetching merchant products:", error);
     throw new Error("Failed to fetch merchant products");
+  }
+}
+
+async function getTotalMerchantProducts(totalTsId = 0) {
+  try {
+    const TOTAL_GET_TOKEN_URI = "http://103.229.178.41:8083/api/tokenbazaar";
+    const TOTAL_USERNAME = "bazaar";
+    const TOTAL_PASSWORD = "M8@46jkljkjkljlk#$2024TD";
+
+    const COLA_PRODUCTS_BY_MERCHANTID =
+      "http://103.229.178.41:8083/api/ebazaar/productremains";
+
+    const tokenResponse = await axios.post(TOTAL_GET_TOKEN_URI!, {
+      username: TOTAL_USERNAME,
+      pass: TOTAL_PASSWORD,
+    });
+
+    const token = tokenResponse.data.token;
+
+    const productsResponse = await axios.post(
+      COLA_PRODUCTS_BY_MERCHANTID,
+      { tradeshopid: totalTsId, company: "TotalDistribution" },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        maxBodyLength: Infinity,
+      }
+    );
+
+    let merchantProducts = productsResponse.data.data.map((product: any) => {
+      if (product.quantity < 1000) {
+        product.quantity = 0;
+      }
+      return product;
+    });
+
+    return { merchantProducts, merchantShatlal: productsResponse.data.shatlal };
+  } catch (error) {
+    console.error("Error fetching total merchant products:", error);
+    throw new Error("Failed to fetch total merchant products");
   }
 }
 
