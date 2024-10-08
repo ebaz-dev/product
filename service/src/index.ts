@@ -3,6 +3,7 @@ import { app } from "./app";
 import { natsWrapper } from "./nats-wrapper";
 import { InventoryCreatedListener } from "./events/listener/inventory-created-listener";
 import { ColaNewProductListener } from "./events/listener/cola-new-product-listener";
+import { ColaProductsUpdatedListener } from "./events/listener/cola-products-updated-listener"
 import { ColaPromoListener } from "./events/listener/cola-new -promo-listener";
 import { ColaMerchantProductsUpdatedListener } from "./events/listener/cola-merchant-products-updated";
 import { TotalProductRecievedListener } from "./events/listener/total-product-recieved-listener";
@@ -58,6 +59,7 @@ const start = async () => {
 
     new InventoryCreatedListener(natsWrapper.client).listen();
     new ColaNewProductListener(natsWrapper.client).listen();
+    new ColaProductsUpdatedListener(natsWrapper.client).listen();
     new ColaPromoListener(natsWrapper.client).listen();
     new ColaMerchantProductsUpdatedListener(natsWrapper.client).listen();
     new TotalProductRecievedListener(natsWrapper.client).listen();
