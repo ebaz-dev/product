@@ -36,30 +36,27 @@ export class ColaProductsUpdatedListener extends Listener<ColaProductsUpdatedEve
         "66ebe3e3c0acbbab7824b195"
       );
 
-      const checkProduct = await Product.find({
+      const checkProduct = await Product.findOne({
         customerId: colaCustomerId,
         "thirdPartyData.customerId": colaCustomerId,
         "thirdPartyData.productId": productId,
       }).session(session);
 
+        if (!checkProduct) {
+        console.error(`Product with productId ${productId} not found.`);
+        return msg.ack();
+      }
 
-      const brand = Brand.findOne({name: brandName}) 
-      console.log(brand);
-    //   const product = new Product({
-    //     name: productName,
-    //     barCode: barcode || "default",
-    //     sku: "default",
-    //     customerId: colaCustomerId,
-    //     images: [
-    //       "https://pics.ebazaar.link/media/product/27d2e8954f9d8cbf9d23f500ae466f1e24e823c7171f95a87da2f28ffd0e.jpg",
-    //     ],
-    //     thirdPartyData: [{ customerId: colaCustomerId, productId: productId }],
-    //     inCase: incase,
-    //     isActive: false,
-    //     priority: 0,
-    //   });
+      const brand = await Brand.findOne({name: brandName}) 
 
-    //   await product.save({ session });
+        if (!brand) {
+        console.error(`Brand with name ${brandName} not found.`);
+        return msg.ack();
+      }
+
+      checkProduct.brandId = brand._id as mongoose.Types.ObjectId;
+
+      await checkProduct.save({ session });
 
       await session.commitTransaction();
 
