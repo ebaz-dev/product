@@ -9,6 +9,7 @@ import { Product } from "../../shared/models/product";
 import mongoose from "mongoose";
 import slugify from "slugify";
 import { natsWrapper } from "../../nats-wrapper";
+import { Brand } from "../../shared/models/brand"
 
 export class ColaProductsUpdatedListener extends Listener<ColaProductsUpdatedEvent> {
   readonly subject = ColaProductSubjects.ColaProductUpdated;
@@ -41,8 +42,9 @@ export class ColaProductsUpdatedListener extends Listener<ColaProductsUpdatedEve
         "thirdPartyData.productId": productId,
       }).session(session);
 
-      console.log(brandName);
 
+      const brand = Brand.findOne({name: brandName}) 
+      console.log(brand);
     //   const product = new Product({
     //     name: productName,
     //     barCode: barcode || "default",
