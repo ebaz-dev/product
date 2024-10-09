@@ -58,7 +58,7 @@ export class TotalPromoRecievedListener extends Listener<TotalPromoRecievedEvent
         endDate: endDate,
         thresholdQuantity: thresholdQuantity,
         promoPercent: promoPercent,
-        giftQuantity: giftQuantity,
+        giftQuantity: giftQuantity || 0,
         isActive: isActive,
         promoTypeId: promoType.typeId,
         promoTypeName: promoType.name,
