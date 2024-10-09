@@ -58,11 +58,11 @@ const promoSchema = new Schema<PromoDoc>(
     },
     promoPercent: {
       type: Number,
-      required: true,
+      required: false,
     },
     giftQuantity: {
       type: Number,
-      required: true,
+      required: false,
     },
     isActive: {
       type: Boolean,
