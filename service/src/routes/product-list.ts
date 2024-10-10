@@ -137,7 +137,7 @@ router.get(
         favourite,
       } = req.query;
 
-      const query: FilterQuery<ProductDoc> = {};
+      const query: FilterQuery<ProductDoc> = {isActive: true};
 
       if (name) query.name = { $regex: name, $options: "i" };
       if (barCode) query.barCode = { $regex: barCode, $options: "i" };
