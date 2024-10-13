@@ -19,25 +19,30 @@ export class ColaMerchantProductsUpdatedListener extends Listener<ColaMerchantPr
     try {
       const { merchantId, customerId, activeList, inActiveList } = data;
 
+      const customerObjectId = new mongoose.Types.ObjectId(customerId);
+
       for (const product of activeList) {
         const productId = new mongoose.Types.ObjectId(product);
 
-        const activeMerchantData = await ProductActiveMerchants.find({
+        const currentProduct = await ProductActiveMerchants.findOne({
+          customerId: customerObjectId,
           productId: productId,
         });
 
-        if (activeMerchantData.length === 0) {
+        if (!currentProduct) {
           const newProductActiveMerchant = new ProductActiveMerchants({
             productId,
+            customerId: customerObjectId,
             type: ProductActiveMerchantsType.custom,
             level: 10,
             entityReferences: [merchantId.toString()],
           });
           await newProductActiveMerchant.save();
         } else {
-          await ProductActiveMerchants.updateMany(
+          await ProductActiveMerchants.updateOne(
             {
               productId: productId,
+              customerId: customerObjectId,
               entityReferences: { $ne: merchantId.toString() },
             },
             {
@@ -50,15 +55,17 @@ export class ColaMerchantProductsUpdatedListener extends Listener<ColaMerchantPr
       for (const product of inActiveList) {
         const productId = new mongoose.Types.ObjectId(product);
 
-        const inActiveMerchantData = await ProductActiveMerchants.find({
+        const currentProduct = await ProductActiveMerchants.findOne({
           productId: productId,
+          customerId: customerObjectId,
           entityReferences: { $in: [merchantId.toString()] },
         });
 
-        if (inActiveMerchantData.length > 0) {
+        if (currentProduct) {
           await ProductActiveMerchants.updateMany(
             {
               productId: productId,
+              customerId: customerObjectId,
               entityReferences: { $in: [merchantId.toString()] },
             },
             {
@@ -70,7 +77,8 @@ export class ColaMerchantProductsUpdatedListener extends Listener<ColaMerchantPr
 
       msg.ack();
     } catch (error: any) {
-      console.error("Error processing ColaNewProductEvent:", error);
+      console.error("Error processing ColaMerchantProductsUpdated event:", error);
+      msg.ack();
     }
   }
 }

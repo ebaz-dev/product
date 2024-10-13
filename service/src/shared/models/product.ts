@@ -381,7 +381,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
 
   let query = { ...params.query };
 
-  const count = await this.countDocuments(query);
+    const count = await this.countDocuments(query);
   const products = await this.find(query)
     .skip(params.skip)
     .limit(params.limit)
@@ -406,7 +406,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
     .populate({
       path: "promos",
       select:
-        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops thirdPartyData.thirdPartyPromoId",
+        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops thirdPartyData.thirdPartyPromoId thirdPartyData.thirdPartyPromoNo",
       match: {
         startDate: { $lte: new Date() },
         endDate: { $gte: new Date() },
@@ -523,7 +523,7 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     .populate({
       path: "promos",
       select:
-        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops",
+        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops thirdPartyData.thirdPartyPromoId thirdPartyData.thirdPartyPromoNo",
       match: {
         startDate: { $lte: new Date() },
         endDate: { $gte: new Date() },
