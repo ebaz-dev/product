@@ -9,6 +9,7 @@ export enum ProductActiveMerchantsType {
 
 interface productActiveMerchantsDoc extends Document {
   id: Types.ObjectId;
+  customerId: Types.ObjectId;
   productId: Types.ObjectId;
   type: ProductActiveMerchantsType;
   level: number;
@@ -21,6 +22,11 @@ const productActiveMerchantsSchema = new Schema<productActiveMerchantsDoc>(
       type: Schema.Types.ObjectId,
       required: true,
       ref: "Product",
+    },
+    customerId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "Customer",
     },
     type: {
       type: String,
