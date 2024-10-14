@@ -353,10 +353,11 @@ productSchema.statics.findWithAdjustedPrice = async function (
   ) {
     const activeProducts = await ProductActiveMerchants.find({
       entityReferences: merchantId.toString(),
+      customerId: params.query.customerId,
     }).select("productId");
 
     if (activeProducts.length > 0) {
-      activeProductIds = activeProducts.map((ap) => ap.productId);
+      activeProductIds = activeProducts.map((ap) => ap.productId.toString());
     }
 
     if (merchantData?.tradeShops) {
@@ -381,7 +382,23 @@ productSchema.statics.findWithAdjustedPrice = async function (
 
   let query = { ...params.query };
 
-    const count = await this.countDocuments(query);
+  if (activeProductIds && activeProductIds.length > 0) {
+    if (query._id && (query._id as any).$in) {
+      const existingIds = (query._id as any).$in;
+
+      const matchingIds = existingIds.filter((id: any) =>
+        activeProductIds.includes(id.toString())
+      );
+      if (matchingIds.length === 0) {
+        return { products: [], count: 0 };
+      }
+      query._id = { $in: matchingIds };
+    } else {
+      query._id = { $in: activeProductIds };
+    }
+  }
+  
+  const count = await this.countDocuments(query);
   const products = await this.find(query)
     .skip(params.skip)
     .limit(params.limit)
@@ -416,7 +433,6 @@ productSchema.statics.findWithAdjustedPrice = async function (
         },
       },
     });
-
   if (products.length === 0) {
     return { products, count };
   }

@@ -1,39 +1,27 @@
 import { Message } from "node-nats-streaming";
 import { Listener } from "@ebazdev/core";
 import {
-  ColaProductsUpdatedEvent,
+  ColaProductUpdatedEvent,
   ColaProductSubjects,
 } from "@ebazdev/cola-integration";
 import { queueGroupName } from "./queu-group-name";
 import { Product } from "../../shared/models/product";
 import mongoose from "mongoose";
 import slugify from "slugify";
-import { natsWrapper } from "../../nats-wrapper";
-import { Brand } from "../../shared/models/brand"
 
-export class ColaProductsUpdatedListener extends Listener<ColaProductsUpdatedEvent> {
+export class ColaProductUpdatedEventListener extends Listener<ColaProductUpdatedEvent> {
   readonly subject = ColaProductSubjects.ColaProductUpdated;
   queueGroupName = queueGroupName;
 
-  async onMessage(data: ColaProductsUpdatedEvent["data"], msg: Message) {
+  async onMessage(data: ColaProductUpdatedEvent["data"], msg: Message) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      const {
-        productId,
-        productName,
-        sectorName,
-        brandName,
-        categoryName,
-        packageName,
-        capacity,
-        incase,
-        barcode,
-      } = data;
+      const { productId, updatedFields } = data;
 
       const colaCustomerId = new mongoose.Types.ObjectId(
-        "66ebe3e3c0acbbab7824b195"
+        process.env.COLA_CUSTOMER_ID
       );
 
       const checkProduct = await Product.findOne({
@@ -42,19 +30,32 @@ export class ColaProductsUpdatedListener extends Listener<ColaProductsUpdatedEve
         "thirdPartyData.productId": productId,
       }).session(session);
 
-        if (!checkProduct) {
+      if (!checkProduct) {
         console.error(`Product with productId ${productId} not found.`);
         return msg.ack();
       }
 
-      const brand = await Brand.findOne({name: brandName}) 
-
-        if (!brand) {
-        console.error(`Brand with name ${brandName} not found.`);
-        return msg.ack();
+      if (updatedFields.productName) {
+        checkProduct.name = updatedFields.productName;
+        checkProduct.slug = slugify(updatedFields.productName, { lower: true });
       }
 
-      checkProduct.brandId = brand._id as mongoose.Types.ObjectId;
+      if (updatedFields.capacity) {
+        checkProduct.attributes = (checkProduct.attributes ?? []).map(
+          (attr: any) =>
+            attr.key === "size"
+              ? { ...attr, value: updatedFields.capacity }
+              : attr
+        );
+      }
+
+      if (updatedFields.incase !== undefined) {
+        checkProduct.inCase = updatedFields.incase;
+      }
+
+      if (updatedFields.barcode) {
+        checkProduct.barCode = updatedFields.barcode;
+      }
 
       await checkProduct.save({ session });
 

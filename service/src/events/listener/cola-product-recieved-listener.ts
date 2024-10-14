@@ -1,7 +1,7 @@
 import { Message } from "node-nats-streaming";
 import { Listener } from "@ebazdev/core";
 import {
-  ColaNewProductEvent,
+  ColaProductRecievedEvent,
   ColaProductSubjects,
 } from "@ebazdev/cola-integration";
 import { queueGroupName } from "./queu-group-name";
@@ -12,11 +12,11 @@ import mongoose from "mongoose";
 import slugify from "slugify";
 import { natsWrapper } from "../../nats-wrapper";
 
-export class ColaNewProductListener extends Listener<ColaNewProductEvent> {
-  readonly subject = ColaProductSubjects.NewProductFound;
+export class ColaProductRecievedEventListener extends Listener<ColaProductRecievedEvent> {
+  readonly subject = ColaProductSubjects.ColaProductRecieved;
   queueGroupName = queueGroupName;
 
-  async onMessage(data: ColaNewProductEvent["data"], msg: Message) {
+  async onMessage(data: ColaProductRecievedEvent["data"], msg: Message) {
     const session = await mongoose.startSession();
     session.startTransaction();
 

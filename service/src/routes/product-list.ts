@@ -6,8 +6,7 @@ import { Product, ProductDoc } from "../shared/models/product";
 import { Promo } from "../shared/models/promo";
 import { Merchant, Customer, CustomerDoc } from "@ebazdev/customer";
 import { ProductActiveMerchants } from "../shared/models/product-active-merchants";
-import mongoose, { FilterQuery } from "mongoose";
-import axios from "axios";
+import mongoose, { FilterQuery, Types } from "mongoose";
 
 const router = express.Router();
 const validOrderByFields = [
@@ -137,7 +136,7 @@ router.get(
         favourite,
       } = req.query;
 
-      const query: FilterQuery<ProductDoc> = {isActive: true};
+      const query: FilterQuery<ProductDoc> = { isActive: true };
 
       if (name) query.name = { $regex: name, $options: "i" };
       if (barCode) query.barCode = { $regex: barCode, $options: "i" };
@@ -192,7 +191,7 @@ router.get(
           .map((id) => id.trim());
         query.brandId = { $in: brandIdsArray };
       }
-
+      
       const pageNumber = parseInt(page as string, 10);
       const limitNumber = limit === "all" ? 0 : parseInt(limit as string, 10);
       const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
@@ -219,31 +218,16 @@ router.get(
         customerId as string
       )) as CustomerDoc | null;
 
-      let activeProductIds: any = [];
-
-      if (merchantId && customerId === "66ebe3e3c0acbbab7824b195") {
-        const activeProducts = await ProductActiveMerchants.find({
-          entityReferences: { $in: merchantId },
-        }).select("productId");
-
-        if (activeProducts.length > 0) {
-          activeProductIds = activeProducts.map((ap) => ap.productId);
-        }
-      }
-
-      if (
-        !query._id &&
-        customerId &&
-        customerId === "66ebe3e3c0acbbab7824b195"
-      ) {
-        query._id = { $in: activeProductIds };
-      }
-
       let cocaColaTsId = null;
       const tradeShops = merchant?.tradeShops ?? [];
+
       tradeShops.forEach((shop) => {
         const { tsId, holdingKey } = shop;
-        cocaColaTsId = holdingKey === "MCSCC" ? tsId : null;
+
+        if (holdingKey === "MCSCC") {
+          cocaColaTsId = tsId;
+        }
+        // cocaColaTsId = holdingKey === "MCSCC" ? tsId : null;
       });
 
       if (promotion || discount) {
@@ -253,8 +237,12 @@ router.get(
           endDate: { $gte: new Date() },
         };
 
+        if (customerId)
+          promoQuery.customerId = new Types.ObjectId(query.customerId);
         const promoConditions: FilterQuery<any>[] = [];
+
         if (promotion) promoConditions.push({ promoTypeId: { $in: [1, 2] } });
+
         if (discount) promoConditions.push({ promoTypeId: { $in: [3] } });
 
         if (promoConditions.length > 0) {
@@ -276,9 +264,7 @@ router.get(
             totalPages: limit === "all" ? 1 : Math.ceil(total / limitNumber),
             currentPage: limit === "all" ? 1 : pageNumber,
           });
-        }
-
-        if (promoProductIds.length > 0) {
+        } else {
           if (query._id) {
             query._id = {
               $in: [...promoProductIds, ...(query._id as any).$in],

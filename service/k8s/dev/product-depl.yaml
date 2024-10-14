@@ -47,6 +47,8 @@ spec:
               value: 'http://122.201.28.22:8083/api/ebazaar/productremains'
             - name: TOTAL_CUSTOMER_ID
               value: "66f12d655e36613db5743430"
+            - name: COLA_CUSTOMER_ID
+              value: "66ebe3e3c0acbbab7824b195"
           readinessProbe:
             httpGet:
               path: /api/v1/product/health

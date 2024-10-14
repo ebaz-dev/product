@@ -77,7 +77,8 @@ router.put(
   validateRequest,
   async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name, categoryId, addFavourite, deleteFavourite, ...otherFields } = req.body;
+    const { name, categoryId, addFavourite, deleteFavourite, ...otherFields } =
+      req.body;
 
     const session = await mongoose.startSession();
     session.startTransaction();

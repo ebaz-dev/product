@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 import { app } from "./app";
 import { natsWrapper } from "./nats-wrapper";
 import { InventoryCreatedListener } from "./events/listener/inventory-created-listener";
-import { ColaNewProductListener } from "./events/listener/cola-new-product-listener";
-import { ColaProductsUpdatedListener } from "./events/listener/cola-products-updated-listener"
+import { ColaProductRecievedEventListener } from "./events/listener/cola-product-recieved-listener";
+import { ColaProductUpdatedEventListener } from "./events/listener/cola-product-updated-listener";
 import { ColaPromoListener } from "./events/listener/cola-new -promo-listener";
 import { ColaMerchantProductsUpdatedListener } from "./events/listener/cola-merchant-products-updated";
 import { TotalProductRecievedListener } from "./events/listener/total-product-recieved-listener";
-import { TotalPromoRecievedListener } from "./events/listener/total-promo-recieved-listener"
-import { ColaAPIClient } from "./shared";
+import { TotalPromoRecievedListener } from "./events/listener/total-promo-recieved-listener";
+import { TotalMerchantProductsUpdatedEventListener } from "./events/listener/total-merchant-product-updated";
 
 const start = async () => {
   if (!process.env.PORT) {
@@ -59,12 +59,13 @@ const start = async () => {
     process.on("SIGTERM", () => natsWrapper.client.close());
 
     new InventoryCreatedListener(natsWrapper.client).listen();
-    new ColaNewProductListener(natsWrapper.client).listen();
-    new ColaProductsUpdatedListener(natsWrapper.client).listen();
+    new ColaProductRecievedEventListener(natsWrapper.client).listen();
+    new ColaProductUpdatedEventListener(natsWrapper.client).listen();
     new ColaPromoListener(natsWrapper.client).listen();
     new ColaMerchantProductsUpdatedListener(natsWrapper.client).listen();
     new TotalProductRecievedListener(natsWrapper.client).listen();
     new TotalPromoRecievedListener(natsWrapper.client).listen();
+    new TotalMerchantProductsUpdatedEventListener(natsWrapper.client).listen();
 
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to DB");

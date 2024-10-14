@@ -1,9 +1,9 @@
 import { Message } from "node-nats-streaming";
 import { Listener } from "@ebazdev/core";
 import {
-  ColaMerchantProductUpdated,
-  ColaProductSubjects,
-} from "@ebazdev/cola-integration";
+  TotalMerchantProductUpdated,
+  TotalProductSubjects,
+} from "@ebazdev/total-integration";
 import { queueGroupName } from "./queu-group-name";
 import {
   ProductActiveMerchants,
@@ -11,14 +11,15 @@ import {
 } from "../../shared/models/product-active-merchants";
 import mongoose from "mongoose";
 
-export class ColaMerchantProductsUpdatedListener extends Listener<ColaMerchantProductUpdated> {
-  readonly subject = ColaProductSubjects.ColaMerchantProductUpdated;
+export class TotalMerchantProductsUpdatedEventListener extends Listener<TotalMerchantProductUpdated> {
+  readonly subject = TotalProductSubjects.TotalMerchantProductUpdated;
   queueGroupName = queueGroupName;
 
-  async onMessage(data: ColaMerchantProductUpdated["data"], msg: Message) {
+  async onMessage(data: TotalMerchantProductUpdated["data"], msg: Message) {
     try {
       const { merchantId, customerId, activeList, inActiveList } = data;
 
+      
       const customerObjectId = new mongoose.Types.ObjectId(customerId);
 
       for (const product of activeList) {
@@ -78,7 +79,7 @@ export class ColaMerchantProductsUpdatedListener extends Listener<ColaMerchantPr
       msg.ack();
     } catch (error: any) {
       console.error(
-        "Error processing ColaMerchantProductsUpdated event:",
+        "Error processing TotalMerchantProductsUpdated event:",
         error
       );
       msg.ack();

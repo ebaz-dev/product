@@ -18,15 +18,15 @@ interface productActiveMerchantsDoc extends Document {
 
 const productActiveMerchantsSchema = new Schema<productActiveMerchantsDoc>(
   {
-    customerId: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      ref: "Customer",
-    },
     productId: {
       type: Schema.Types.ObjectId,
       required: true,
       ref: "Product",
+    },
+    customerId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "Customer",
     },
     type: {
       type: String,

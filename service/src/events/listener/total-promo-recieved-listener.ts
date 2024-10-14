@@ -38,20 +38,20 @@ export class TotalPromoRecievedListener extends Listener<TotalPromoRecievedEvent
         thirdPartyPromoTypeCode,
         totalProducts,
         totalGiftProducts,
-        totalTradeshops
+        totalTradeshops,
       } = data;
 
       const totalCustomerId = new mongoose.Types.ObjectId(totalId);
 
-        const promoType = await PromoType.findOne({
-            type: thirdPartyPromoTypeCode,
-        });
+      const promoType = await PromoType.findOne({
+        type: thirdPartyPromoTypeCode,
+      });
 
-    if (!promoType) {
+      if (!promoType) {
         throw new Error(`Invalid promo type: ${thirdPartyPromoTypeCode}`);
-    }
+      }
 
-    const promo = new Promo({
+      const promo = new Promo({
         customerId: new mongoose.Types.ObjectId(customerId),
         name: name,
         startDate: startDate,

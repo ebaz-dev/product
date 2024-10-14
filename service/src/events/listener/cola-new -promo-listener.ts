@@ -70,7 +70,7 @@ export class ColaPromoListener extends Listener<ColaPromoRecievedEvent> {
           thirdPartyTradeshops: colaTradeshops,
         },
       });
-      
+
       promo.save();
 
       msg.ack();
