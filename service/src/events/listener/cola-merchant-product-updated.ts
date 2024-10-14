@@ -11,7 +11,7 @@ import {
 } from "../../shared/models/product-active-merchants";
 import mongoose from "mongoose";
 
-export class ColaMerchantProductsUpdatedListener extends Listener<ColaMerchantProductUpdated> {
+export class ColaMerchantProductUpdatedListener extends Listener<ColaMerchantProductUpdated> {
   readonly subject = ColaProductSubjects.ColaMerchantProductUpdated;
   queueGroupName = queueGroupName;
 

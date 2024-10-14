@@ -79,7 +79,7 @@ export class TotalMerchantProductsUpdatedEventListener extends Listener<TotalMer
       msg.ack();
     } catch (error: any) {
       console.error(
-        "Error processing TotalMerchantProductsUpdated event:",
+        "Error processing total mechant product updated event:",
         error
       );
       msg.ack();

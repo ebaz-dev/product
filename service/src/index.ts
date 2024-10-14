@@ -5,8 +5,8 @@ import { InventoryCreatedListener } from "./events/listener/inventory-created-li
 import { ColaProductRecievedEventListener } from "./events/listener/cola-product-recieved-listener";
 import { ColaProductUpdatedEventListener } from "./events/listener/cola-product-updated-listener";
 import { ColaPromoListener } from "./events/listener/cola-new -promo-listener";
-import { ColaMerchantProductsUpdatedListener } from "./events/listener/cola-merchant-products-updated";
-import { TotalProductRecievedListener } from "./events/listener/total-product-recieved-listener";
+import { ColaMerchantProductUpdatedListener } from "./events/listener/cola-merchant-product-updated";
+import { TotalProductRecievedEventListener } from "./events/listener/total-product-recieved-listener";
 import { TotalPromoRecievedListener } from "./events/listener/total-promo-recieved-listener";
 import { TotalMerchantProductsUpdatedEventListener } from "./events/listener/total-merchant-product-updated";
 
@@ -61,9 +61,9 @@ const start = async () => {
     new InventoryCreatedListener(natsWrapper.client).listen();
     new ColaProductRecievedEventListener(natsWrapper.client).listen();
     new ColaProductUpdatedEventListener(natsWrapper.client).listen();
+    new ColaMerchantProductUpdatedListener(natsWrapper.client).listen();
     new ColaPromoListener(natsWrapper.client).listen();
-    new ColaMerchantProductsUpdatedListener(natsWrapper.client).listen();
-    new TotalProductRecievedListener(natsWrapper.client).listen();
+    new TotalProductRecievedEventListener(natsWrapper.client).listen();
     new TotalPromoRecievedListener(natsWrapper.client).listen();
     new TotalMerchantProductsUpdatedEventListener(natsWrapper.client).listen();
 

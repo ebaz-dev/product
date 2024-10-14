@@ -1,7 +1,7 @@
 import { Message } from "node-nats-streaming";
 import { Listener } from "@ebazdev/core";
 import {
-  TotalNewProductEvent,
+  TotalProductRecievedEvent,
   TotalProductSubjects,
 } from "@ebazdev/total-integration";
 import { queueGroupName } from "./queu-group-name";
@@ -14,11 +14,11 @@ import { natsWrapper } from "../../nats-wrapper";
 
 const totalId = process.env.TOTAL_CUSTOMER_ID;
 
-export class TotalProductRecievedListener extends Listener<TotalNewProductEvent> {
-  readonly subject = TotalProductSubjects.NewProductFound;
+export class TotalProductRecievedEventListener extends Listener<TotalProductRecievedEvent> {
+  readonly subject = TotalProductSubjects.TotalProductRecieved;
   queueGroupName = queueGroupName;
 
-  async onMessage(data: TotalNewProductEvent["data"], msg: Message) {
+  async onMessage(data: TotalProductRecievedEvent["data"], msg: Message) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -101,7 +101,7 @@ export class TotalProductRecievedListener extends Listener<TotalNewProductEvent>
 
       msg.ack();
     } catch (error: any) {
-      console.error("Error processing TotalProductRecievedEvent:", error);
+      console.error("Error processing total product recieved:", error);
 
       await session.abortTransaction();
       msg.ack();
