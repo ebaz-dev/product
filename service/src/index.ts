@@ -6,7 +6,7 @@ import { ColaProductRecievedEventListener } from "./events/listener/cola-product
 import { ColaProductUpdatedEventListener } from "./events/listener/cola-product-updated-listener";
 import { ColaProductDeactivatedEventListener } from "./events/listener/cola-product-deactivated-listener";
 import { ColaMerchantProductUpdatedListener } from "./events/listener/cola-merchant-product-updated";
-import { ColaPromoListener } from "./events/listener/cola-new -promo-listener";
+import { ColaPromoListener } from "./events/listener/cola-new-promo-listener";
 import { TotalProductRecievedEventListener } from "./events/listener/total-product-recieved-listener";
 import { TotalProductUpdatedEventListener } from "./events/listener/total-product-updated-listener";
 import { TotalProductDeactivatedEventListener } from "./events/listener/total-product-deactivated-listener";

@@ -6,6 +6,7 @@ import {
 } from "@ebazdev/total-integration";
 import { queueGroupName } from "./queu-group-name";
 import { Product } from "../../shared/models/product";
+import { Brand } from "../../shared/models/brand";
 import mongoose from "mongoose";
 import slugify from "slugify";
 
@@ -24,10 +25,12 @@ export class TotalProductUpdatedEventListener extends Listener<TotalProductUpdat
         process.env.TOTAL_CUSTOMER_ID
       );
 
+      const productObjectId = new mongoose.Types.ObjectId(productId);
+
       const checkProduct = await Product.findOne({
+        _id: productObjectId,
         customerId: totalCustomerId,
         "thirdPartyData.customerId": totalCustomerId,
-        "thirdPartyData.productId": productId,
       }).session(session);
 
       if (!checkProduct) {
@@ -41,15 +44,53 @@ export class TotalProductUpdatedEventListener extends Listener<TotalProductUpdat
       }
 
       if (updatedFields.capacity) {
+        let attributeFound = false;
+
         checkProduct.attributes = (checkProduct.attributes ?? []).map(
-          (attr: any) =>
-            attr.key === "size"
-              ? { ...attr, value: updatedFields.capacity }
-              : attr
+          (attr: any) => {
+            if (attr.key === "size") {
+              attributeFound = true;
+              return { ...attr, value: updatedFields.capacity };
+            }
+            return attr;
+          }
         );
+
+        if (!attributeFound) {
+          checkProduct.attributes.push({
+            id: new mongoose.Types.ObjectId("66ebb4370904055b002055c1"),
+            name: "Хэмжээ",
+            slug: "hemzhee",
+            key: "size",
+            value: updatedFields.capacity,
+          });
+        }
       }
 
-      if (updatedFields.incase !== undefined) {
+      if (updatedFields.brandName) {
+        const existingBrand = await Brand.findOne({
+          name: updatedFields.brandName,
+          customerId: totalCustomerId,
+        }).session(session);
+
+        if (!existingBrand) {
+          const newBrand = new Brand({
+            name: updatedFields.brandName,
+            slug: slugify(updatedFields.brandName, { lower: true }),
+            customerId: totalCustomerId,
+            image: "",
+            isActive: true,
+          });
+
+          await newBrand.save({ session });
+
+          checkProduct.brandId = newBrand._id as mongoose.Types.ObjectId;
+        } else {
+          checkProduct.brandId = existingBrand._id as mongoose.Types.ObjectId;
+        }
+      }
+
+      if (updatedFields.incase) {
         checkProduct.inCase = updatedFields.incase;
       }
 
