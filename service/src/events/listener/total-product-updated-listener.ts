@@ -76,7 +76,9 @@ export class TotalProductUpdatedEventListener extends Listener<TotalProductUpdat
             name: updatedFields.brandName,
             slug: slugify(updatedFields.brandName, { lower: true }),
             customerId: totalCustomerId,
-            image: "",
+            image: [
+              "https://pics.ebazaar.link/media/product/9989646044764598603108547708202205130611436585188195547456197872435120.png",
+            ],
             isActive: true,
           });
 
