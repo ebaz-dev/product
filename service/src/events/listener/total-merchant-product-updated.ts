@@ -19,7 +19,6 @@ export class TotalMerchantProductsUpdatedEventListener extends Listener<TotalMer
     try {
       const { merchantId, customerId, activeList, inActiveList } = data;
 
-      
       const customerObjectId = new mongoose.Types.ObjectId(customerId);
 
       for (const product of activeList) {

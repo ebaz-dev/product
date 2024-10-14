@@ -7,7 +7,7 @@ import {
 import { Product } from "../../shared/models/product";
 import { queueGroupName } from "./queu-group-name";
 
-const colaCustomerId = process.env.COLA_CUSTOMER_ID
+const colaCustomerId = process.env.COLA_CUSTOMER_ID;
 
 export class ColaProductDeactivatedEventListener extends Listener<ColaProductDeactivatedEvent> {
   readonly subject = ColaProductSubjects.ColaProductDeactivated;
@@ -17,7 +17,10 @@ export class ColaProductDeactivatedEventListener extends Listener<ColaProductDea
     try {
       const { productId } = data;
 
-      const product = await Product.findOne({ _id: productId, customerId: colaCustomerId });
+      const product = await Product.findOne({
+        _id: productId,
+        customerId: colaCustomerId,
+      });
 
       if (product) {
         product.set({ isActive: false });

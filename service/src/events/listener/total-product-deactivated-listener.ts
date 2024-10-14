@@ -7,18 +7,20 @@ import {
 import { Product } from "../../shared/models/product";
 import { queueGroupName } from "./queu-group-name";
 
-const totalCustomerId = process.env.TOTAL_CUSTOMER_ID
+const totalCustomerId = process.env.TOTAL_CUSTOMER_ID;
 
-export class ColaProductDeactivatedEventListener extends Listener<TotalProductDeactivatedEvent> {
+export class TotalProductDeactivatedEventListener extends Listener<TotalProductDeactivatedEvent> {
   readonly subject = TotalProductSubjects.TotalProductDeactivated;
   queueGroupName = queueGroupName;
 
-  
   async onMessage(data: TotalProductDeactivatedEvent["data"], msg: Message) {
     try {
       const { productId } = data;
 
-      const product = await Product.findOne({ _id: productId, customerId: totalCustomerId });
+      const product = await Product.findOne({
+        _id: productId,
+        customerId: totalCustomerId,
+      });
 
       if (product) {
         product.set({ isActive: false });
@@ -27,10 +29,7 @@ export class ColaProductDeactivatedEventListener extends Listener<TotalProductDe
 
       msg.ack();
     } catch (error: any) {
-      console.error(
-        "Error processing total product deactivated event:",
-        error
-      );
+      console.error("Error processing total product deactivated event:", error);
       msg.ack();
     }
   }

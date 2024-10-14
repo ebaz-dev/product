@@ -4,11 +4,14 @@ import { natsWrapper } from "./nats-wrapper";
 import { InventoryCreatedListener } from "./events/listener/inventory-created-listener";
 import { ColaProductRecievedEventListener } from "./events/listener/cola-product-recieved-listener";
 import { ColaProductUpdatedEventListener } from "./events/listener/cola-product-updated-listener";
-import { ColaPromoListener } from "./events/listener/cola-new -promo-listener";
+import { ColaProductDeactivatedEventListener } from "./events/listener/cola-product-deactivated-listener";
 import { ColaMerchantProductUpdatedListener } from "./events/listener/cola-merchant-product-updated";
+import { ColaPromoListener } from "./events/listener/cola-new -promo-listener";
 import { TotalProductRecievedEventListener } from "./events/listener/total-product-recieved-listener";
-import { TotalPromoRecievedListener } from "./events/listener/total-promo-recieved-listener";
+import { TotalProductUpdatedEventListener } from "./events/listener/total-product-updated-listener";
+import { TotalProductDeactivatedEventListener } from "./events/listener/total-product-deactivated-listener";
 import { TotalMerchantProductsUpdatedEventListener } from "./events/listener/total-merchant-product-updated";
+import { TotalPromoRecievedListener } from "./events/listener/total-promo-recieved-listener";
 
 const start = async () => {
   if (!process.env.PORT) {
@@ -61,11 +64,14 @@ const start = async () => {
     new InventoryCreatedListener(natsWrapper.client).listen();
     new ColaProductRecievedEventListener(natsWrapper.client).listen();
     new ColaProductUpdatedEventListener(natsWrapper.client).listen();
+    new ColaProductDeactivatedEventListener(natsWrapper.client).listen();
     new ColaMerchantProductUpdatedListener(natsWrapper.client).listen();
     new ColaPromoListener(natsWrapper.client).listen();
     new TotalProductRecievedEventListener(natsWrapper.client).listen();
-    new TotalPromoRecievedListener(natsWrapper.client).listen();
+    new TotalProductUpdatedEventListener(natsWrapper.client).listen();
+    new TotalProductDeactivatedEventListener(natsWrapper.client).listen();
     new TotalMerchantProductsUpdatedEventListener(natsWrapper.client).listen();
+    new TotalPromoRecievedListener(natsWrapper.client).listen();
 
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to DB");
