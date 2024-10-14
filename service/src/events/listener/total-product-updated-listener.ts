@@ -28,7 +28,7 @@ export class TotalProductUpdatedEventListener extends Listener<TotalProductUpdat
       const checkProduct = await Product.findOne({
         customerId: totalCustomerId,
         "thirdPartyData.customerId": totalCustomerId,
-        "thirdPartyData.productId": productId,
+        "thirdPartyData.productId": parseInt(productId),
       }).session(session);
 
       if (!checkProduct) {
