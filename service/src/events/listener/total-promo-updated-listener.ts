@@ -19,6 +19,11 @@ export class TotalPromoUpdatedListener extends Listener<TotalPromoUpdatedEvent> 
     try {
       const { id, updatedFields } = data;
 
+      if (!updatedFields) {
+        console.error("Updated fields are missing.");
+        return msg.ack();
+      }
+
       const promo = await Promo.findById(id).session(session);
 
       if (!promo) {
