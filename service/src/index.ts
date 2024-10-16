@@ -12,6 +12,7 @@ import { TotalProductUpdatedEventListener } from "./events/listener/total-produc
 import { TotalProductDeactivatedEventListener } from "./events/listener/total-product-deactivated-listener";
 import { TotalMerchantProductsUpdatedEventListener } from "./events/listener/total-merchant-product-updated";
 import { TotalPromoRecievedListener } from "./events/listener/total-promo-recieved-listener";
+import { TotalPromoUpdatedListener } from "./events/listener/total-promo-updated-listener";
 
 const start = async () => {
   if (!process.env.PORT) {
@@ -72,6 +73,7 @@ const start = async () => {
     new TotalProductDeactivatedEventListener(natsWrapper.client).listen();
     new TotalMerchantProductsUpdatedEventListener(natsWrapper.client).listen();
     new TotalPromoRecievedListener(natsWrapper.client).listen();
+    new TotalPromoUpdatedListener(natsWrapper.client).listen();
 
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to DB");

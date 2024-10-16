@@ -7,6 +7,7 @@ interface BrandDoc extends Document {
   slug: string;
   customerId: Types.ObjectId;
   image: string;
+  isActive: boolean;
 }
 
 interface BrandModel extends Model<BrandDoc> {}
@@ -28,6 +29,10 @@ const brandSchema = new Schema<BrandDoc>(
     image: {
       type: String,
       required: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
