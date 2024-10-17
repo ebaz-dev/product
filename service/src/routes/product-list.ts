@@ -4,8 +4,7 @@ import { validateRequest } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product, ProductDoc } from "../shared/models/product";
 import { Promo } from "../shared/models/promo";
-import { Merchant, Customer, CustomerDoc } from "@ebazdev/customer";
-import { ProductActiveMerchants } from "../shared/models/product-active-merchants";
+import { Merchant } from "@ebazdev/customer";
 import mongoose, { FilterQuery, Types } from "mongoose";
 
 const router = express.Router();
@@ -17,6 +16,9 @@ const validOrderByFields = [
   "sizeIncreased",
   "sizeDecreased",
 ];
+
+const totalCustomerId = "66f12d655e36613db5743430";
+const colaCustomerId = "66ebe3e3c0acbbab7824b195";
 
 router.get(
   "/list",
@@ -191,7 +193,7 @@ router.get(
           .map((id) => id.trim());
         query.brandId = { $in: brandIdsArray };
       }
-      
+
       const pageNumber = parseInt(page as string, 10);
       const limitNumber = limit === "all" ? 0 : parseInt(limit as string, 10);
       const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
@@ -214,28 +216,27 @@ router.get(
 
       const merchant = await Merchant.findById(merchantId as string);
 
-      const customer = (await Customer.findById(
-        customerId as string
-      )) as CustomerDoc | null;
-
-      let cocaColaTsId = null;
-      const tradeShops = merchant?.tradeShops ?? [];
-
-      tradeShops.forEach((shop) => {
-        const { tsId, holdingKey } = shop;
-
-        if (holdingKey === "MCSCC") {
-          cocaColaTsId = tsId;
-        }
-        // cocaColaTsId = holdingKey === "MCSCC" ? tsId : null;
-      });
-
       if (promotion || discount) {
+        const currentDate = new Date();
         const promoQuery: FilterQuery<any> = {
           isActive: true,
-          startDate: { $lte: new Date() },
-          endDate: { $gte: new Date() },
+          startDate: { $lte: currentDate },
+          endDate: { $gte: currentDate },
         };
+
+        let merchantTradeshopId = null;
+        const tradeShops = merchant?.tradeShops ?? [];
+
+        tradeShops.forEach((shop) => {
+          const { tsId, holdingKey } = shop;
+          if (customerId === totalCustomerId && holdingKey === "TD") {
+            merchantTradeshopId = tsId;
+          }
+
+          if (customerId === colaCustomerId && holdingKey === "MCSCC") {
+            merchantTradeshopId = tsId;
+          }
+        });
 
         if (customerId)
           promoQuery.customerId = new Types.ObjectId(query.customerId);
@@ -249,8 +250,8 @@ router.get(
           promoQuery.$or = promoConditions;
         }
 
-        if (cocaColaTsId !== null) {
-          promoQuery.tradeshops = { $in: [cocaColaTsId] };
+        if (merchantTradeshopId !== null) {
+          promoQuery.tradeshops = { $in: [parseInt(merchantTradeshopId)] };
         }
 
         const promos = await Promo.find(promoQuery).select("products");
@@ -282,6 +283,7 @@ router.get(
       }
 
       const businessTypeId = new mongoose.Types.ObjectId();
+
       const { products, count: total } = await Product.findWithAdjustedPrice({
         query,
         merchant: {

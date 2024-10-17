@@ -14,17 +14,17 @@ router.get(
     try {
       const { id } = req.params;
 
-      const price = await Promo.findById(id);
+      const promo = await Promo.findById(id);
 
-      if (!price) {
+      if (!promo) {
         throw new NotFoundError();
       }
 
-      res.status(StatusCodes.OK).send(price);
+      res.status(StatusCodes.OK).send(promo);
     } catch (error) {
-      console.error("Error fetching price:", error);
+      console.error("Error fetching promo:", error);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-        message: "An error occurred while fetching the price.",
+        message: "An error occurred while fetching the promo.",
       });
     }
   }
