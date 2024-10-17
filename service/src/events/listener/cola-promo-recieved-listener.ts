@@ -9,7 +9,7 @@ import { Promo } from "../../shared/models/promo";
 import { PromoType } from "../../shared/models/promoType";
 import mongoose from "mongoose";
 
-export class ColaPromoListener extends Listener<ColaPromoRecievedEvent> {
+export class ColaPromoRecievedListener extends Listener<ColaPromoRecievedEvent> {
   readonly subject = ColaPromoSubjects.ColaPromoRecieved;
   queueGroupName = queueGroupName;
 
@@ -75,12 +75,8 @@ export class ColaPromoListener extends Listener<ColaPromoRecievedEvent> {
 
       msg.ack();
     } catch (error: any) {
-      if (error.message.includes("Invalid promo type")) {
-        console.error("Invalid promo type");
-        msg.ack();
-      } else {
-        console.error("Error processing ColaNewProductEvent:", error);
-      }
+      console.error("Error processing ColaPromoRecievedListener:", error);
+      msg.ack();
     }
   }
 }

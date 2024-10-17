@@ -9,16 +9,11 @@ import { Promo } from "../../shared/models/promo";
 import { PromoType } from "../../shared/models/promoType";
 import mongoose from "mongoose";
 
-const totalId = process.env.TOTAL_CUSTOMER_ID;
-
 export class TotalPromoRecievedListener extends Listener<TotalPromoRecievedEvent> {
   readonly subject = TotalPromoSubjects.TotalPromoRecieved;
   queueGroupName = queueGroupName;
 
   async onMessage(data: TotalPromoRecievedEvent["data"], msg: Message) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
       const {
         name,
@@ -40,8 +35,6 @@ export class TotalPromoRecievedListener extends Listener<TotalPromoRecievedEvent
         totalGiftProducts,
         totalTradeshops,
       } = data;
-
-      const totalCustomerId = new mongoose.Types.ObjectId(totalId);
 
       const promoType = await PromoType.findOne({
         type: thirdPartyPromoTypeCode,
@@ -82,11 +75,7 @@ export class TotalPromoRecievedListener extends Listener<TotalPromoRecievedEvent
       msg.ack();
     } catch (error: any) {
       console.error("Error processing TotalProductRecievedEvent:", error);
-
-      await session.abortTransaction();
       msg.ack();
-    } finally {
-      session.endSession();
     }
   }
 }
