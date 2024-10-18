@@ -19,11 +19,6 @@ export class TotalMerchantProductsUpdatedEventListener extends Listener<TotalMer
     try {
       const { merchantId, customerId, activeList, inActiveList } = data;
 
-      console.log("**********************");
-      console.log("merchantId:", merchantId);
-      console.log("customerId:", customerId);
-      console.log("**********************");
-
       const merchantIdString = merchantId.toString();
 
       if (activeList.length > 0) {

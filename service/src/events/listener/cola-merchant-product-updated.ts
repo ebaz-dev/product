@@ -18,58 +18,48 @@ export class ColaMerchantProductUpdatedListener extends Listener<ColaMerchantPro
   async onMessage(data: ColaMerchantProductUpdated["data"], msg: Message) {
     try {
       const { merchantId, customerId, activeList, inActiveList } = data;
+      const merchantIdString = merchantId.toString();
 
-      const customerObjectId = new mongoose.Types.ObjectId(customerId);
+      if (activeList.length > 0) {
+        const productIds = activeList.map(
+          (product) => new mongoose.Types.ObjectId(product)
+        );
 
-      for (const product of activeList) {
-        const productId = new mongoose.Types.ObjectId(product);
-
-        const currentProduct = await ProductActiveMerchants.findOne({
-          customerId: customerObjectId,
-          productId: productId,
-        });
-
-        if (!currentProduct) {
-          const newProductActiveMerchant = new ProductActiveMerchants({
-            productId,
-            customerId: customerObjectId,
-            type: ProductActiveMerchantsType.custom,
-            level: 10,
-            entityReferences: [merchantId.toString()],
-          });
-          await newProductActiveMerchant.save();
-        } else {
+        for (const productId of productIds) {
           await ProductActiveMerchants.updateOne(
             {
-              productId: productId,
-              customerId: customerObjectId,
-              entityReferences: { $nin: [merchantId.toString()] },
+              productId,
+              customerId,
+              entityReferences: { $nin: [merchantIdString] },
             },
             {
-              $addToSet: { entityReferences: merchantId.toString() },
-            }
+              $setOnInsert: {
+                productId,
+                customerId,
+                type: ProductActiveMerchantsType.custom,
+                level: 10,
+              },
+              $addToSet: { entityReferences: merchantIdString },
+            },
+            { upsert: true }
           );
         }
       }
 
-      for (const product of inActiveList) {
-        const productId = new mongoose.Types.ObjectId(product);
+      if (inActiveList.length > 0) {
+        const productIds = inActiveList.map(
+          (product) => new mongoose.Types.ObjectId(product)
+        );
 
-        const currentProduct = await ProductActiveMerchants.findOne({
-          productId: productId,
-          customerId: customerObjectId,
-          entityReferences: { $in: [merchantId.toString()] },
-        });
-
-        if (currentProduct) {
+        for (const productId of productIds) {
           await ProductActiveMerchants.updateOne(
             {
-              productId: productId,
-              customerId: customerObjectId,
-              entityReferences: { $in: [merchantId.toString()] },
+              productId,
+              customerId,
+              entityReferences: { $in: [merchantIdString] },
             },
             {
-              $pull: { entityReferences: merchantId.toString() },
+              $pull: { entityReferences: merchantIdString },
             }
           );
         }
