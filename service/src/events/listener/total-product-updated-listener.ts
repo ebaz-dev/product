@@ -26,9 +26,8 @@ export class TotalProductUpdatedEventListener extends Listener<TotalProductUpdat
       );
 
       const checkProduct = await Product.findOne({
+        _id: productId,
         customerId: totalCustomerId,
-        "thirdPartyData.customerId": totalCustomerId,
-        "thirdPartyData.productId": parseInt(productId),
       }).session(session);
 
       if (!checkProduct) {
@@ -39,30 +38,6 @@ export class TotalProductUpdatedEventListener extends Listener<TotalProductUpdat
       if (updatedFields.productName) {
         checkProduct.name = updatedFields.productName;
         checkProduct.slug = slugify(updatedFields.productName, { lower: true });
-      }
-
-      if (updatedFields.capacity) {
-        let attributeFound = false;
-
-        checkProduct.attributes = (checkProduct.attributes ?? []).map(
-          (attr: any) => {
-            if (attr.key === "size") {
-              attributeFound = true;
-              return { ...attr, value: updatedFields.capacity };
-            }
-            return attr;
-          }
-        );
-
-        if (!attributeFound) {
-          checkProduct.attributes.push({
-            id: new mongoose.Types.ObjectId("66ebb4370904055b002055c1"),
-            name: "Хэмжээ",
-            slug: "hemzhee",
-            key: "size",
-            value: updatedFields.capacity,
-          });
-        }
       }
 
       if (updatedFields.brandName) {
@@ -86,6 +61,30 @@ export class TotalProductUpdatedEventListener extends Listener<TotalProductUpdat
           checkProduct.brandId = newBrand._id as mongoose.Types.ObjectId;
         } else {
           checkProduct.brandId = existingBrand._id as mongoose.Types.ObjectId;
+        }
+      }
+
+      if (updatedFields.capacity) {
+        let attributeFound = false;
+
+        checkProduct.attributes = (checkProduct.attributes ?? []).map(
+          (attr: any) => {
+            if (attr.key === "size") {
+              attributeFound = true;
+              return { ...attr, value: updatedFields.capacity };
+            }
+            return attr;
+          }
+        );
+
+        if (!attributeFound) {
+          checkProduct.attributes.push({
+            id: new mongoose.Types.ObjectId("66ebb4370904055b002055c1"),
+            name: "Хэмжээ",
+            slug: "hemzhee",
+            key: "size",
+            value: updatedFields.capacity,
+          });
         }
       }
 
