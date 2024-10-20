@@ -24,15 +24,9 @@ export class TotalProductUpdatedEventListener extends Listener<TotalProductUpdat
       const totalCustomerId = new mongoose.Types.ObjectId(
         process.env.TOTAL_CUSTOMER_ID
       );
-      console.log("********************");
-      console.log({
-        _id: productId,
-        customerId: totalCustomerId,
-      });
-      console.log("********************");
 
       const checkProduct = await Product.findOne({
-        _id: productId,
+        _id: new mongoose.Types.ObjectId(productId),
         customerId: totalCustomerId,
       }).session(session);
 
