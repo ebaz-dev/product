@@ -7,6 +7,7 @@ import {
 import { queueGroupName } from "./queu-group-name";
 import { Product } from "../../shared/models/product";
 import { ProductPrice } from "../../shared/models/price";
+import { Brand } from "../../shared/models/brand";
 import { ProductCreatedPublisher } from "../publisher/product-created-publisher";
 import mongoose from "mongoose";
 import slugify from "slugify";
@@ -16,30 +17,20 @@ export class ColaProductRecievedEventListener extends Listener<ColaProductReciev
   readonly subject = ColaProductSubjects.ColaProductRecieved;
   queueGroupName = queueGroupName;
 
+  customerId = process.env.COLA_CUSTOMER_ID;
+  customerObjectId = new mongoose.Types.ObjectId(this.customerId);
+
   async onMessage(data: ColaProductRecievedEvent["data"], msg: Message) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      const {
-        productId,
-        productName,
-        sectorName,
-        brandName,
-        categoryName,
-        packageName,
-        capacity,
-        incase,
-        barcode,
-      } = data;
-
-      const colaCustomerId = new mongoose.Types.ObjectId(
-        "66ebe3e3c0acbbab7824b195"
-      );
+      const { productId, productName, brandName, capacity, incase, barcode } =
+        data;
 
       const checkProduct = await Product.find({
-        customerId: colaCustomerId,
-        "thirdPartyData.customerId": colaCustomerId,
+        customerId: this.customerObjectId,
+        "thirdPartyData.customerId": this.customerObjectId,
         "thirdPartyData.productId": productId,
       }).session(session);
 
@@ -52,20 +43,63 @@ export class ColaProductRecievedEventListener extends Listener<ColaProductReciev
 
       const slug = slugify(productName, { lower: true, strict: true });
 
+      let brandId: mongoose.Types.ObjectId | undefined;
+
+      if (brandName) {
+        const existingBrand = await Brand.findOne({
+          name: brandName,
+          customerId: this.customerObjectId,
+        }).session(session);
+
+        if (!existingBrand) {
+          const newBrand = new Brand({
+            name: brandName,
+            slug: slugify(brandName, { lower: true }),
+            customerId: this.customerObjectId,
+            image:
+              "https://pics.ebazaar.link/media/product/9989646044764598603108547708202205130611436585188195547456197872435120.png",
+            isActive: true,
+          });
+
+          await newBrand.save({ session });
+          brandId = newBrand._id as mongoose.Types.ObjectId;
+        } else {
+          brandId = existingBrand._id as mongoose.Types.ObjectId;
+        }
+      }
+
       const product = new Product({
         name: productName,
         slug: slug,
         barCode: barcode || "default",
         sku: "default",
-        customerId: colaCustomerId,
+        customerId: this.customerObjectId,
         images: [
           "https://pics.ebazaar.link/media/product/27d2e8954f9d8cbf9d23f500ae466f1e24e823c7171f95a87da2f28ffd0e.jpg",
         ],
-        thirdPartyData: [{ customerId: colaCustomerId, productId: productId }],
+        thirdPartyData: [
+          { customerId: this.customerObjectId, productId: productId },
+        ],
         inCase: incase,
         isActive: false,
         priority: 0,
       });
+
+      if (brandId) {
+        product.brandId = brandId;
+      }
+
+      if (capacity) {
+        product.attributes = product.attributes || [];
+
+        product.attributes.push({
+          id: new mongoose.Types.ObjectId("66ebb4370904055b002055c1"),
+          name: "Хэмжээ",
+          slug: "hemzhee",
+          key: "size",
+          value: capacity,
+        });
+      }
 
       await product.save({ session });
 

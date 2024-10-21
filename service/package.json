@@ -26,9 +26,9 @@
   "description": "",
   "dependencies": {
     "@ebazdev/auth": "^1.0.20",
-    "@ebazdev/cola-integration": "^1.0.18",
+    "@ebazdev/cola-integration": "^1.0.19",
     "@ebazdev/core": "^1.0.29",
-    "@ebazdev/customer": "^1.0.18",
+    "@ebazdev/customer": "^1.0.25",
     "@ebazdev/inventory": "^1.0.11",
     "@ebazdev/total-integration": "^1.0.10",
     "@types/cookie-session": "^2.0.49",
