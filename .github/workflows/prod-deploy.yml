@@ -1,4 +1,4 @@
-name: Deploy Auth Service - Prod
+name: Deploy Product Service - Prod
 
 on:
   push:
