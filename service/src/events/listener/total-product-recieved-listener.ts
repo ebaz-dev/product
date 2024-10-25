@@ -23,17 +23,8 @@ export class TotalProductRecievedEventListener extends Listener<TotalProductReci
     session.startTransaction();
 
     try {
-      const {
-        productId,
-        productName,
-        sectorName,
-        brandName,
-        categoryName,
-        packageName,
-        capacity,
-        incase,
-        barcode,
-      } = data;
+      const { productId, productName, brandName, capacity, incase, barcode } =
+        data;
 
       const totalCustomerId = new mongoose.Types.ObjectId(totalId);
 
