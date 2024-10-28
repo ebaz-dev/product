@@ -1,6 +1,6 @@
 {
   "name": "@ebazdev/product",
-  "version": "1.0.76",
+  "version": "1.0.78",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "files": [
@@ -32,6 +32,7 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
+    "@ebazdev/core": "^1.0.34",
     "@ebazdev/customer": "^1.0.16",
     "@types/jsonwebtoken": "^9.0.6",
     "axios": "^1.7.7",
