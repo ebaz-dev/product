@@ -418,6 +418,10 @@ productSchema.statics.findWithAdjustedPrice = async function (
     tsId: any,
     products: any[]
   ) => {
+    console.log("*******************");
+    console.log(apiClient);
+    console.log("*******************");
+
     const apiResult = await apiClient
       .getClient()
       .getProductsByMerchantId(tsId.toString());
