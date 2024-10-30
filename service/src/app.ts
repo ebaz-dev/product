@@ -22,6 +22,7 @@ import { promoCreateRouter } from "./routes/promo-type-create";
 import { promoGetRouter } from "./routes/promo-get";
 import { productListBymerchantIdRouter } from "./routes/merchant-product-list";
 import { dashboardProductListRouter } from "./routes/dashboard-product-list";
+import { backofficeProductListRouter } from "./routes/backoffice/product-list";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import { healthRouter } from "./routes/health";
@@ -29,6 +30,7 @@ import { healthRouter } from "./routes/health";
 dotenv.config();
 
 const apiPrefix = "/api/v1/product";
+const boApiPrefix = "/api/v1/bo/products";
 
 const app = express();
 app.set("trust proxy", true);
@@ -73,6 +75,9 @@ app.use(apiPrefix, productGetRouter);
 app.use(apiPrefix, productBulkUpdateRouter);
 app.use(apiPrefix, productUpdateRouter);
 app.use(apiPrefix, dashboardProductListRouter);
+
+// Backoffice routes
+app.use(boApiPrefix, backofficeProductListRouter);
 
 app.all("*", async () => {
   console.log("router not found");
