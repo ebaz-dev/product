@@ -23,6 +23,8 @@ import { promoGetRouter } from "./routes/promo-get";
 import { productListBymerchantIdRouter } from "./routes/merchant-product-list";
 import { dashboardProductListRouter } from "./routes/dashboard-product-list";
 import { backofficeProductListRouter } from "./routes/backoffice/product-list";
+import { backofficeProductUpdateRouter } from "./routes/backoffice/product-update";
+import { backofficeProductCreateRouter } from "./routes/backoffice/product-create";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import { healthRouter } from "./routes/health";
@@ -46,6 +48,8 @@ app.use(apiPrefix, healthRouter);
 
 // Backoffice routes
 app.use(boApiPrefix, backofficeProductListRouter);
+app.use(boApiPrefix, backofficeProductUpdateRouter);
+app.use(boApiPrefix, backofficeProductCreateRouter);
 
 // Price routes
 app.use(apiPrefix, pricesRouter);
