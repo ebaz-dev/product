@@ -30,7 +30,7 @@ import { healthRouter } from "./routes/health";
 dotenv.config();
 
 const apiPrefix = "/api/v1/product";
-const boApiPrefix = "/api/v1/bo/products";
+const boApiPrefix = "/api/v1/product/bo";
 
 const app = express();
 app.set("trust proxy", true);
@@ -43,7 +43,10 @@ app.use(
 );
 
 app.use(apiPrefix, healthRouter);
-// test
+
+// Backoffice routes
+app.use(boApiPrefix, backofficeProductListRouter);
+
 // Price routes
 app.use(apiPrefix, pricesRouter);
 app.use(apiPrefix, priceRouter);
@@ -75,9 +78,6 @@ app.use(apiPrefix, productGetRouter);
 app.use(apiPrefix, productBulkUpdateRouter);
 app.use(apiPrefix, productUpdateRouter);
 app.use(apiPrefix, dashboardProductListRouter);
-
-// Backoffice routes
-app.use(boApiPrefix, backofficeProductListRouter);
 
 app.all("*", async () => {
   console.log("router not found");
