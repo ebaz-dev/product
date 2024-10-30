@@ -31,7 +31,6 @@ import { healthRouter } from "./routes/health";
 
 dotenv.config();
 
-//api prefix
 const apiPrefix = "/api/v1/product";
 const boApiPrefix = "/api/v1/product/bo";
 
