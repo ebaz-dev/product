@@ -175,7 +175,15 @@ router.get(
       const products = await Product.find(query)
         .skip(skip)
         .limit(limitNumber)
-        .sort(sort);
+        .sort(sort)
+        .populate("inventory", "totalStock reservedStock availableStock")
+        .populate("brand", "name slug customerId image")
+        .populate("categories", "name slug")
+        .populate(
+          "customer",
+          "name type regNo categoryId userId address phone email logo bankAccounts"
+        )
+        .populate("prices", "price cost");
       const total = await Product.countDocuments(query);
 
       res.status(StatusCodes.OK).send({
