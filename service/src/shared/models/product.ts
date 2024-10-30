@@ -419,6 +419,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
     products: any[]
   ) => {
     console.log("*******************");
+    console.log('COLA API CLIENT');
     console.log(apiClient);
     console.log("*******************");
 
