@@ -182,8 +182,7 @@ router.get(
         .populate(
           "customer",
           "name type regNo categoryId userId address phone email logo bankAccounts"
-        )
-        .populate("prices", "price cost");
+        );
       const total = await Product.countDocuments(query);
 
       res.status(StatusCodes.OK).send({
