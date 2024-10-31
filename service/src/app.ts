@@ -25,7 +25,11 @@ import { dashboardProductListRouter } from "./routes/dashboard-product-list";
 import { backofficeProductListRouter } from "./routes/backoffice/bo-product-list";
 import { backofficeProductUpdateRouter } from "./routes/backoffice/bo-product-update";
 import { backofficeProductCreateRouter } from "./routes/backoffice/bo-product-create";
-import { backofficeProductGetRouter } from "./routes/backoffice/bo-product";
+import { backofficeProductGetRouter } from "./routes/backoffice/bo-product-get";
+import { boBrandsRouter } from "./routes/backoffice/bo-brand-list";
+import { boBrandCreateRouter } from "./routes/backoffice/bo-brand-create";
+import { boBrandUpdateRouter } from "./routes/backoffice/bo-brand-update";
+import { boBrandGetByIdRouter } from "./routes/backoffice/bo-brand-get";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import { healthRouter } from "./routes/health";
@@ -48,6 +52,11 @@ app.use(
 app.use(apiPrefix, healthRouter);
 
 // Backoffice routes
+app.use(boApiPrefix, boBrandsRouter);
+app.use(boApiPrefix, boBrandCreateRouter);
+app.use(boApiPrefix, boBrandUpdateRouter);
+app.use(boApiPrefix, boBrandGetByIdRouter);
+
 app.use(boApiPrefix, backofficeProductListRouter);
 app.use(boApiPrefix, backofficeProductUpdateRouter);
 app.use(boApiPrefix, backofficeProductCreateRouter);
