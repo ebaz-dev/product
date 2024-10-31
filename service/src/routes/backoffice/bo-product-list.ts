@@ -78,14 +78,14 @@ router.get(
       .optional()
       .custom((value) => value === "all" || parseInt(value, 10) > 0)
       .withMessage("Limit must be a positive integer or 'all'"),
-    query("priority")
+    query("sortKey")
       .optional()
       .isString()
-      .custom((value) => {
-        const [key, order] = value.split(":");
-        return key === "priority" && (order === "asc" || order === "desc");
-      })
-      .withMessage("Order by must be 'priority:asc' or 'priority:desc'"),
+      .withMessage("Sort key must be a string"),
+    query("sortValue")
+      .optional()
+      .isIn(["asc", "desc"])
+      .withMessage("Sort value must be 'asc' or 'desc'"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
@@ -103,6 +103,8 @@ router.get(
         inCase,
         page = "1",
         limit = "20",
+        sortKey,
+        sortValue,
         priority: orderBy = "priority:asc",
       } = req.query as any;
 
@@ -158,11 +160,10 @@ router.get(
       const limitNumber = limit === "all" ? 0 : parseInt(limit, 10);
       const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
 
-      const sort: { [key: string]: 1 | -1 } = {};
-      if (orderBy) {
-        const [_, order] = orderBy.split(":");
-        sort.priority = order === "desc" ? -1 : 1;
-      }
+      const sort: Record<string, 1 | -1> | undefined =
+        sortKey && sortValue
+          ? { [sortKey]: sortValue === "asc" ? 1 : -1 }
+          : undefined;
 
       const products = await Product.find(query)
         .skip(skip)
