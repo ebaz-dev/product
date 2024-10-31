@@ -128,4 +128,4 @@ router.put(
   }
 );
 
-export { router as backofficeProductUpdateRouter };
+export { router as boProductUpdateRouter };

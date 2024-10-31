@@ -22,14 +22,18 @@ import { promoCreateRouter } from "./routes/promo-type-create";
 import { promoGetRouter } from "./routes/promo-get";
 import { productListBymerchantIdRouter } from "./routes/merchant-product-list";
 import { dashboardProductListRouter } from "./routes/dashboard-product-list";
-import { backofficeProductListRouter } from "./routes/backoffice/bo-product-list";
-import { backofficeProductUpdateRouter } from "./routes/backoffice/bo-product-update";
-import { backofficeProductCreateRouter } from "./routes/backoffice/bo-product-create";
-import { backofficeProductGetRouter } from "./routes/backoffice/bo-product-get";
+import { boProductListRouter } from "./routes/backoffice/bo-product-list";
+import { boProductUpdateRouter } from "./routes/backoffice/bo-product-update";
+import { boProductCreateRouter } from "./routes/backoffice/bo-product-create";
+import { boProductGetRouter } from "./routes/backoffice/bo-product-get";
 import { boBrandsRouter } from "./routes/backoffice/bo-brand-list";
 import { boBrandCreateRouter } from "./routes/backoffice/bo-brand-create";
 import { boBrandUpdateRouter } from "./routes/backoffice/bo-brand-update";
 import { boBrandGetByIdRouter } from "./routes/backoffice/bo-brand-get";
+import { boCategoriesRouter } from "./routes/backoffice/bo-category-list";
+import { boCategoryCreateRouter } from "./routes/backoffice/bo-category-create";
+import { boCategoryUpdateRouter } from "./routes/backoffice/bo-category-update";
+import { boCategoryGetByIdRouter } from "./routes/backoffice/bo-category-get";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import { healthRouter } from "./routes/health";
@@ -57,10 +61,15 @@ app.use(boApiPrefix, boBrandCreateRouter);
 app.use(boApiPrefix, boBrandUpdateRouter);
 app.use(boApiPrefix, boBrandGetByIdRouter);
 
-app.use(boApiPrefix, backofficeProductListRouter);
-app.use(boApiPrefix, backofficeProductUpdateRouter);
-app.use(boApiPrefix, backofficeProductCreateRouter);
-app.use(boApiPrefix, backofficeProductGetRouter);
+app.use(boApiPrefix, boCategoriesRouter);
+app.use(boApiPrefix, boCategoryCreateRouter);
+app.use(boApiPrefix, boCategoryUpdateRouter);
+app.use(boApiPrefix, boCategoryGetByIdRouter);
+
+app.use(boApiPrefix, boProductListRouter);
+app.use(boApiPrefix, boProductUpdateRouter);
+app.use(boApiPrefix, boProductCreateRouter);
+app.use(boApiPrefix, boProductGetRouter);
 
 // Price routes
 app.use(apiPrefix, pricesRouter);

@@ -10,7 +10,7 @@ const router = express.Router();
 router.get(
   "/",
   [
-    query("filter[ids]")
+    query("ids")
       .optional()
       .custom((value) => {
         const idsArray = value.split(",").map((id: string) => id.trim());
@@ -19,27 +19,21 @@ router.get(
         );
       })
       .withMessage("IDs must be a comma-separated list of valid ObjectIds"),
-    query("filter[name]")
-      .optional()
-      .isString()
-      .withMessage("Name must be a string"),
-    query("filter[barCode]")
+    query("name").optional().isString().withMessage("Name must be a string"),
+    query("barCode")
       .optional()
       .isString()
       .withMessage("Bar code must be a string"),
-    query("filter[sku]")
-      .optional()
-      .isString()
-      .withMessage("SKU must be a string"),
-    query("filter[customerId]")
+    query("sku").optional().isString().withMessage("SKU must be a string"),
+    query("customerId")
       .optional()
       .custom((value) => value === "" || mongoose.Types.ObjectId.isValid(value))
       .withMessage("Customer ID must be a valid ObjectId or an empty string"),
-    query("filter[vendorId]")
+    query("vendorId")
       .optional()
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Vendor ID must be a valid ObjectId"),
-    query("filter[categories]")
+    query("categories")
       .optional()
       .custom((value) => {
         const idsArray = value.split(",").map((id: string) => id.trim());
@@ -50,7 +44,7 @@ router.get(
       .withMessage(
         "Category IDs must be a comma-separated list of valid ObjectIds"
       ),
-    query("filter[brands]")
+    query("brands")
       .optional()
       .custom((value) => {
         const idsArray = value.split(",").map((id: string) => id.trim());
@@ -61,7 +55,7 @@ router.get(
       .withMessage(
         "Brand IDs must be a comma-separated list of valid ObjectIds"
       ),
-    query("filter[attributeValues]")
+    query("attributeValues")
       .optional()
       .custom((value) => {
         const valuesArray = value.split(",").map((val: string) => val.trim());
@@ -72,7 +66,7 @@ router.get(
       .withMessage(
         "Attribute values must be a comma-separated list of strings or numbers"
       ),
-    query("filter[inCase]")
+    query("inCase")
       .optional()
       .isInt({ min: 1 })
       .withMessage("In case must be a positive integer"),
@@ -84,7 +78,7 @@ router.get(
       .optional()
       .custom((value) => value === "all" || parseInt(value, 10) > 0)
       .withMessage("Limit must be a positive integer or 'all'"),
-    query("sort[priority]")
+    query("priority")
       .optional()
       .isString()
       .custom((value) => {
@@ -97,21 +91,19 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const {
-        filter: {
-          ids,
-          name,
-          barCode,
-          sku,
-          customerId,
-          categories,
-          vendorId,
-          brands,
-          attributeValues,
-          inCase,
-        } = {},
-        page = 1,
-        limit = 20,
-        sort: { priority: orderBy } = { priority: "priority:asc" },
+        ids,
+        name,
+        barCode,
+        sku,
+        customerId,
+        categories,
+        vendorId,
+        brands,
+        attributeValues,
+        inCase,
+        page = "1",
+        limit = "20",
+        priority: orderBy = "priority:asc",
       } = req.query as any;
 
       const query: FilterQuery<ProductDoc> = {};
@@ -183,6 +175,7 @@ router.get(
           "customer",
           "name type regNo categoryId userId address phone email logo bankAccounts"
         );
+
       const total = await Product.countDocuments(query);
 
       res.status(StatusCodes.OK).send({
@@ -192,7 +185,7 @@ router.get(
         currentPage: limit === "all" ? 1 : pageNumber,
       });
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching products:", error);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
         message: "Something went wrong.",
       });
@@ -200,4 +193,4 @@ router.get(
   }
 );
 
-export { router as backofficeProductListRouter };
+export { router as boProductListRouter };

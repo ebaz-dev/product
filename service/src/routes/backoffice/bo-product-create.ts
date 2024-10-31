@@ -228,4 +228,4 @@ router.post(
   }
 );
 
-export { router as backofficeProductCreateRouter };
+export { router as boProductCreateRouter };

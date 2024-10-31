@@ -1,13 +1,13 @@
 import express, { Request, Response } from "express";
 import { query } from "express-validator";
-import { Brand } from "../../shared/models/brand";
+import { ProductCategory } from "../../shared/models/category";
 import { StatusCodes } from "http-status-codes";
-import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
+import { validateRequest, BadRequestError } from "@ebazdev/core";
 import mongoose from "mongoose";
 
 const router = express.Router();
 
-interface BrandQuery {
+interface CategoryQuery {
   ids?: string;
   name?: string;
   customerId?: string;
@@ -18,7 +18,7 @@ interface BrandQuery {
 }
 
 router.get(
-  "/brands",
+  "/categories",
   [
     query("ids")
       .optional()
@@ -52,7 +52,7 @@ router.get(
       .withMessage("Sort value must be 'asc' or 'desc'"),
   ],
   validateRequest,
-  async (req: Request<{}, {}, {}, BrandQuery>, res: Response) => {
+  async (req: Request<{}, {}, {}, CategoryQuery>, res: Response) => {
     try {
       const {
         ids,
@@ -64,6 +64,7 @@ router.get(
         sortValue,
       } = req.query;
 
+      // Build the query filter
       const queryFilter: Record<string, any> = {
         ...(ids && {
           _id: {
@@ -82,6 +83,7 @@ router.get(
         ...(customerId && { customerId }),
       };
 
+      // Pagination and sorting options
       const pageNumber = Number(page);
       const limitNumber = limit === "all" ? 0 : Number(limit);
       const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
@@ -91,25 +93,25 @@ router.get(
           ? { [sortKey]: sortValue === "asc" ? 1 : -1 }
           : undefined;
 
-      const [brands, total] = await Promise.all([
-        Brand.find(queryFilter)
+      const [categories, total] = await Promise.all([
+        ProductCategory.find(queryFilter)
           .sort(sort as any)
           .skip(skip)
           .limit(limitNumber),
-        Brand.countDocuments(queryFilter),
+        ProductCategory.countDocuments(queryFilter),
       ]);
 
       res.status(StatusCodes.OK).send({
-        data: brands,
+        data: categories,
         total,
         totalPages: limit === "all" ? 1 : Math.ceil(total / limitNumber),
         currentPage: limit === "all" ? 1 : pageNumber,
       });
     } catch (error) {
-      console.error("Error fetching brands:", error);
+      console.error("Error fetching categories:", error);
       throw new BadRequestError("Something went wrong.");
     }
   }
 );
 
-export { router as boBrandsRouter };
+export { router as boCategoriesRouter };

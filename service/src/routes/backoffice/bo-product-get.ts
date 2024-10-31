@@ -37,4 +37,4 @@ router.get(
   }
 );
 
-export { router as backofficeProductGetRouter };
+export { router as boProductGetRouter };
