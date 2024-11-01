@@ -2,7 +2,12 @@ import express, { Request, Response } from "express";
 import { query } from "express-validator";
 import { ProductCategory } from "../../shared/models/category";
 import { StatusCodes } from "http-status-codes";
-import { validateRequest, BadRequestError } from "@ebazdev/core";
+import {
+  validateRequest,
+  BadRequestError,
+  requireAuth,
+  currentUser,
+} from "@ebazdev/core";
 import mongoose from "mongoose";
 
 const router = express.Router();
@@ -51,6 +56,8 @@ router.get(
       .isIn(["asc", "desc"])
       .withMessage("Sort value must be 'asc' or 'desc'"),
   ],
+  currentUser,
+  requireAuth,
   validateRequest,
   async (req: Request<{}, {}, {}, CategoryQuery>, res: Response) => {
     try {

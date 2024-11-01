@@ -1,6 +1,12 @@
 import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
-import { validateRequest, NotFoundError, BadRequestError } from "@ebazdev/core";
+import {
+  validateRequest,
+  NotFoundError,
+  BadRequestError,
+  requireAuth,
+  currentUser,
+} from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Brand } from "../../shared/models/brand";
 import slugify from "slugify";
@@ -21,6 +27,8 @@ router.put(
       .withMessage("Customer ID must be a valid ObjectId"),
     body("image").optional().isString().withMessage("Image must be a string"),
   ],
+  currentUser,
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { id } = req.params;

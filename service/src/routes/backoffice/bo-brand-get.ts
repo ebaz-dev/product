@@ -1,6 +1,12 @@
 import express, { Request, Response } from "express";
 import { param } from "express-validator";
-import { validateRequest, NotFoundError, BadRequestError } from "@ebazdev/core";
+import {
+  validateRequest,
+  NotFoundError,
+  BadRequestError,
+  requireAuth,
+  currentUser,
+} from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Brand } from "../../shared/models/brand";
 import mongoose from "mongoose";
@@ -14,6 +20,8 @@ router.get(
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Invalid brand ID"),
   ],
+  currentUser,
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { id } = req.params;

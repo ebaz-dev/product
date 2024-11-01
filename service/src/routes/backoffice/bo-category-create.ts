@@ -1,6 +1,11 @@
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
-import { validateRequest, BadRequestError } from "@ebazdev/core";
+import {
+  validateRequest,
+  BadRequestError,
+  requireAuth,
+  currentUser,
+} from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { ProductCategory } from "../../shared/models/category";
 import slugify from "slugify";
@@ -20,6 +25,8 @@ router.post(
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Parent ID must be a valid ObjectId"),
   ],
+  currentUser,
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { name, customerId, parentId } = req.body;

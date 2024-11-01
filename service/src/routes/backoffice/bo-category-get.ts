@@ -2,7 +2,13 @@ import express, { Request, Response } from "express";
 import { param } from "express-validator";
 import { ProductCategory } from "../../shared/models/category";
 import { StatusCodes } from "http-status-codes";
-import { validateRequest, NotFoundError, BadRequestError } from "@ebazdev/core";
+import {
+  validateRequest,
+  NotFoundError,
+  BadRequestError,
+  requireAuth,
+  currentUser,
+} from "@ebazdev/core";
 import mongoose from "mongoose";
 
 const router = express.Router();
@@ -14,6 +20,8 @@ router.get(
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Invalid category ID"),
   ],
+  currentUser,
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     try {

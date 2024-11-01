@@ -1,6 +1,7 @@
 import express from "express";
 import "express-async-errors";
 import { json } from "body-parser";
+import { currentUser } from "@ebazdev/core";
 import { NotFoundError, errorHandler } from "@ebazdev/core";
 import { productCreateRouter } from "./routes/product-create";
 import { productBulkCreateRouter } from "./routes/product-bulk-create";
@@ -34,6 +35,7 @@ import { boCategoriesRouter } from "./routes/backoffice/bo-category-list";
 import { boCategoryCreateRouter } from "./routes/backoffice/bo-category-create";
 import { boCategoryUpdateRouter } from "./routes/backoffice/bo-category-update";
 import { boCategoryGetByIdRouter } from "./routes/backoffice/bo-category-get";
+import { merchantProductsRouter } from "./routes/backoffice/bo-merchant-products";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import { healthRouter } from "./routes/health";
@@ -53,9 +55,13 @@ app.use(
   })
 );
 
+// app.use(currentUser);
+
 app.use(apiPrefix, healthRouter);
 
 // Backoffice routes
+app.use(boApiPrefix, merchantProductsRouter);
+
 app.use(boApiPrefix, boBrandsRouter);
 app.use(boApiPrefix, boBrandCreateRouter);
 app.use(boApiPrefix, boBrandUpdateRouter);
