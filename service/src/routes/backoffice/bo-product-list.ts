@@ -10,7 +10,7 @@ const router = express.Router();
 router.get(
   "/",
   [
-    query("ids")
+    query("filter[ids]")
       .optional()
       .custom((value) => {
         const idsArray = value.split(",").map((id: string) => id.trim());
@@ -19,21 +19,27 @@ router.get(
         );
       })
       .withMessage("IDs must be a comma-separated list of valid ObjectIds"),
-    query("name").optional().isString().withMessage("Name must be a string"),
-    query("barCode")
+    query("filter[name]")
+      .optional()
+      .isString()
+      .withMessage("Name must be a string"),
+    query("filter[barCode]")
       .optional()
       .isString()
       .withMessage("Bar code must be a string"),
-    query("sku").optional().isString().withMessage("SKU must be a string"),
-    query("customerId")
+    query("filter[sku]")
+      .optional()
+      .isString()
+      .withMessage("SKU must be a string"),
+    query("filter[customerId]")
       .optional()
       .custom((value) => value === "" || mongoose.Types.ObjectId.isValid(value))
       .withMessage("Customer ID must be a valid ObjectId or an empty string"),
-    query("vendorId")
+    query("filter[vendorId]")
       .optional()
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Vendor ID must be a valid ObjectId"),
-    query("categories")
+    query("filter[categories]")
       .optional()
       .custom((value) => {
         const idsArray = value.split(",").map((id: string) => id.trim());
@@ -44,7 +50,7 @@ router.get(
       .withMessage(
         "Category IDs must be a comma-separated list of valid ObjectIds"
       ),
-    query("brands")
+    query("filter[brands]")
       .optional()
       .custom((value) => {
         const idsArray = value.split(",").map((id: string) => id.trim());
@@ -55,7 +61,7 @@ router.get(
       .withMessage(
         "Brand IDs must be a comma-separated list of valid ObjectIds"
       ),
-    query("attributeValues")
+    query("filter[attributeValues]")
       .optional()
       .custom((value) => {
         const valuesArray = value.split(",").map((val: string) => val.trim());
@@ -66,10 +72,14 @@ router.get(
       .withMessage(
         "Attribute values must be a comma-separated list of strings or numbers"
       ),
-    query("inCase")
+    query("filter[inCase]")
       .optional()
       .isInt({ min: 1 })
       .withMessage("In case must be a positive integer"),
+    query("filter[isActive]")
+      .optional()
+      .isIn(["0", "1"])
+      .withMessage("isActive must be either '0' or '1'"),
     query("page")
       .optional()
       .isInt({ min: 1 })
@@ -93,6 +103,15 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const {
+        filter = {},
+        page = "1",
+        limit = "20",
+        sortKey,
+        sortValue,
+        priority: orderBy = "priority:asc",
+      } = req.query as any;
+
+      const {
         ids,
         name,
         barCode,
@@ -103,12 +122,8 @@ router.get(
         brands,
         attributeValues,
         inCase,
-        page = "1",
-        limit = "20",
-        sortKey,
-        sortValue,
-        priority: orderBy = "priority:asc",
-      } = req.query as any;
+        isActive,
+      } = filter;
 
       const query: FilterQuery<ProductDoc> = {};
 
@@ -117,7 +132,8 @@ router.get(
       if (sku) query.sku = { $regex: sku, $options: "i" };
       if (customerId) query.customerId = customerId;
       if (vendorId) query.vendorId = vendorId;
-      if (inCase) query.inCase = inCase;
+      if (inCase) query.inCase = parseInt(inCase, 10);
+      if (isActive !== undefined) query.isActive = isActive === "1";
 
       if (ids) {
         const idsArray = ids.split(",").map((id: string) => id.trim());
