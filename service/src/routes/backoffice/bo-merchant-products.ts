@@ -1,6 +1,11 @@
 import express, { Request, Response } from "express";
 import { query } from "express-validator";
-import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
+import {
+  validateRequest,
+  BadRequestError,
+  requireAuth,
+  currentUser,
+} from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { ProductActiveMerchants } from "../../shared/models/product-active-merchants";
 import mongoose from "mongoose";
@@ -10,22 +15,28 @@ const router = express.Router();
 router.get(
   "/merchant-products",
   [
-    query("merchantId")
+    query("filter[merchantId]")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Invalid merchant ID"),
-    query("customerId")
+    query("filter[customerId]")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Invalid customer ID"),
   ],
+  currentUser,
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
-    const { merchantId, customerId } = req.query;
+    const { filter = {} } = req.query;
+    const { merchantId, customerId } = filter as {
+      merchantId: string;
+      customerId: string;
+    };
+
     try {
       const activeProducts = await ProductActiveMerchants.find({
-        customerId: new mongoose.Types.ObjectId(customerId as string),
+        customerId: new mongoose.Types.ObjectId(customerId),
         entityReferences: {
-          $in: [new mongoose.Types.ObjectId(merchantId as string)],
+          $in: [new mongoose.Types.ObjectId(merchantId)],
         },
       });
 

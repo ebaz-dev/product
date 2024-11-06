@@ -108,7 +108,6 @@ router.get(
         limit = "20",
         sortKey,
         sortValue,
-        priority: orderBy = "priority:asc",
       } = req.query as any;
 
       const {
