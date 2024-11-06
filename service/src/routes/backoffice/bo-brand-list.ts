@@ -13,9 +13,11 @@ import mongoose from "mongoose";
 const router = express.Router();
 
 interface BrandQuery {
-  ids?: string;
-  name?: string;
-  customerId?: string;
+  filter?: {
+    ids?: string;
+    name?: string;
+    customerId?: string;
+  };
   page?: string;
   limit?: string;
   sortKey?: string;
@@ -25,7 +27,7 @@ interface BrandQuery {
 router.get(
   "/brands",
   [
-    query("ids")
+    query("filter[ids]")
       .optional()
       .custom((value) => {
         const idsArray = value.split(",").map((id: string) => id.trim());
@@ -34,8 +36,11 @@ router.get(
         );
       })
       .withMessage("Each ID must be a valid ObjectId"),
-    query("name").optional().isString().withMessage("Name must be a string"),
-    query("customerId")
+    query("filter[name]")
+      .optional()
+      .isString()
+      .withMessage("Name must be a string"),
+    query("filter[customerId]")
       .optional()
       .custom((id) => mongoose.Types.ObjectId.isValid(id))
       .withMessage("Customer ID must be a valid ObjectId"),
@@ -62,14 +67,14 @@ router.get(
   async (req: Request<{}, {}, {}, BrandQuery>, res: Response) => {
     try {
       const {
-        ids,
-        name,
-        customerId,
+        filter = {},
         page = "1",
         limit = "10",
         sortKey,
         sortValue,
       } = req.query;
+
+      const { ids, name, customerId } = filter;
 
       const queryFilter: Record<string, any> = {
         ...(ids && {
