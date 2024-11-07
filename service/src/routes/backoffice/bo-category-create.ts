@@ -17,9 +17,9 @@ router.post(
   "/category",
   [
     body("name").isString().notEmpty().withMessage("Name is required"),
-    body("customerId")
+    body("supplierId")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
-      .withMessage("Customer ID must be a valid ObjectId"),
+      .withMessage("Supplier ID must be a valid ObjectId"),
     body("parentId")
       .optional()
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
@@ -29,7 +29,7 @@ router.post(
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
-    const { name, customerId, parentId } = req.body;
+    const { name, supplierId, parentId } = req.body;
 
     const existingCategory = await ProductCategory.findOne({ name });
 
@@ -43,7 +43,7 @@ router.post(
       const category = new ProductCategory({
         name,
         slug,
-        customerId,
+        customerId: supplierId,
         parentId,
       });
 

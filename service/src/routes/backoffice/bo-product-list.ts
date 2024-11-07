@@ -31,10 +31,10 @@ router.get(
       .optional()
       .isString()
       .withMessage("SKU must be a string"),
-    query("filter[customerId]")
+    query("filter[supplierId]")
       .optional()
       .custom((value) => value === "" || mongoose.Types.ObjectId.isValid(value))
-      .withMessage("Customer ID must be a valid ObjectId or an empty string"),
+      .withMessage("Supplier ID must be a valid ObjectId or an empty string"),
     query("filter[vendorId]")
       .optional()
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
@@ -115,7 +115,7 @@ router.get(
         name,
         barCode,
         sku,
-        customerId,
+        supplierId,
         categories,
         vendorId,
         brands,
@@ -129,7 +129,7 @@ router.get(
       if (name) query.name = { $regex: name, $options: "i" };
       if (barCode) query.barCode = { $regex: barCode, $options: "i" };
       if (sku) query.sku = { $regex: sku, $options: "i" };
-      if (customerId) query.customerId = customerId;
+      if (supplierId) query.customerId = supplierId;
       if (vendorId) query.vendorId = vendorId;
       if (inCase) query.inCase = parseInt(inCase, 10);
       if (isActive !== undefined) query.isActive = isActive === "1";

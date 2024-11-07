@@ -17,16 +17,16 @@ router.post(
   "/brand",
   [
     body("name").isString().notEmpty().withMessage("Name is required"),
-    body("customerId")
+    body("supplierId")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
-      .withMessage("Customer ID must be a valid ObjectId"),
+      .withMessage("Supplier ID must be a valid ObjectId"),
     body("image").isString().notEmpty().withMessage("Image is required"),
   ],
   currentUser,
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
-    const { name, customerId, image } = req.body;
+    const { name, supplierId, image } = req.body;
 
     const existingBrand = await Brand.findOne({ name });
     if (existingBrand) {
@@ -39,7 +39,7 @@ router.post(
       const brand = new Brand({
         name,
         slug,
-        customerId,
+        customerId: supplierId,
         image,
       });
 

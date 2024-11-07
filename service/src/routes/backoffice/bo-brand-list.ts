@@ -16,7 +16,7 @@ interface BrandQuery {
   filter?: {
     ids?: string;
     name?: string;
-    customerId?: string;
+    supplierId?: string;
   };
   page?: string;
   limit?: string;
@@ -40,10 +40,10 @@ router.get(
       .optional()
       .isString()
       .withMessage("Name must be a string"),
-    query("filter[customerId]")
+    query("filter[supplierId]")
       .optional()
       .custom((id) => mongoose.Types.ObjectId.isValid(id))
-      .withMessage("Customer ID must be a valid ObjectId"),
+      .withMessage("Supplier ID must be a valid ObjectId"),
     query("page")
       .optional()
       .isInt({ min: 1 })
@@ -74,7 +74,7 @@ router.get(
         sortValue,
       } = req.query;
 
-      const { ids, name, customerId } = filter;
+      const { ids, name, supplierId } = filter;
 
       const queryFilter: Record<string, any> = {
         ...(ids && {
@@ -91,7 +91,7 @@ router.get(
             { slug: new RegExp(name, "i") },
           ],
         }),
-        ...(customerId && { customerId }),
+        ...(supplierId && { customerId: supplierId }),
       };
 
       const pageNumber = Number(page);
