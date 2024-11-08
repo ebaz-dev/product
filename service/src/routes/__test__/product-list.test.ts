@@ -10,5 +10,5 @@ it("fails when invalid IDs are provided", async () => {
   await request(app)
     .get(apiPrefix)
     .query({ merchantId, customerId })
-    .expect(500);
+    .expect(401);
 });
