@@ -38,6 +38,7 @@ router.post(
       })
       .withMessage("Price and cost must be numbers"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { productId, type, level, entityReferences, prices } = req.body;

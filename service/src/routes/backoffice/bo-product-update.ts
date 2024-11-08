@@ -1,11 +1,6 @@
 import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
-import {
-  validateRequest,
-  BadRequestError,
-  requireAuth,
-  currentUser,
-} from "@ebazdev/core";
+import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product } from "../../shared/models/product";
 import { ProductCategory } from "../../shared/models/category";
@@ -64,7 +59,6 @@ router.put(
       .isArray()
       .withMessage("Attributes must be an array"),
   ],
-  currentUser,
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {

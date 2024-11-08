@@ -5,7 +5,6 @@ import {
   NotFoundError,
   BadRequestError,
   requireAuth,
-  currentUser,
 } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Promo } from "../../shared/models/promo";
@@ -31,7 +30,6 @@ router.put(
     body("startDate").optional().isISO8601().withMessage("Invalid start date"),
     body("endDate").optional().isISO8601().withMessage("Invalid end date"),
   ],
-  currentUser,
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {

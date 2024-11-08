@@ -418,11 +418,6 @@ productSchema.statics.findWithAdjustedPrice = async function (
     tsId: any,
     products: any[]
   ) => {
-    console.log("*******************");
-    console.log('COLA API CLIENT');
-    console.log(apiClient);
-    console.log("*******************");
-
     const apiResult = await apiClient
       .getClient()
       .getProductsByMerchantId(tsId.toString());
@@ -532,7 +527,8 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     initializeInventory(product);
 
     product.adjustedPrice.price = merchantProduct?.price || 0;
-    product.inventory.availableStock = merchantProduct?.quantity || 0;
+    product.inventory.availableStock =
+      merchantProduct?.quantity < 1000 ? 0 : merchantProduct?.quantity || 0;
   };
 
   if (colaTsId) {

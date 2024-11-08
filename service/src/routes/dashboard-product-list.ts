@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { query } from "express-validator";
-import { validateRequest } from "@ebazdev/core";
+import { validateRequest, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product, ProductDoc } from "../shared/models/product";
 import mongoose, { FilterQuery } from "mongoose";
@@ -64,6 +64,7 @@ router.get(
       .custom((value) => value === "all" || parseInt(value, 10) > 0)
       .withMessage("Limit must be a positive integer or 'all'"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     try {
@@ -82,10 +83,18 @@ router.get(
 
       const query: FilterQuery<ProductDoc> = {};
 
-      if (name) query.$or = [{ name: { $regex: name, $options: "i" } }, { slug: { $regex: name, $options: "i" } }];
+      if (name)
+        query.$or = [
+          { name: { $regex: name, $options: "i" } },
+          { slug: { $regex: name, $options: "i" } },
+        ];
       if (barCode) query.barCode = { $regex: barCode, $options: "i" };
       if (sku) query.sku = { $regex: sku, $options: "i" };
-      if (customerId && typeof customerId === "string" && customerId.length > 0) {
+      if (
+        customerId &&
+        typeof customerId === "string" &&
+        customerId.length > 0
+      ) {
         query.customerId = customerId;
       }
       if (vendorId) query.vendorId = vendorId;
@@ -94,11 +103,15 @@ router.get(
         query._id = { $in: idsArray };
       }
       if (categories) {
-        const categoryIdsArray = (categories as string).split(",").map((id) => id.trim());
+        const categoryIdsArray = (categories as string)
+          .split(",")
+          .map((id) => id.trim());
         query.categoryIds = { $in: categoryIdsArray };
       }
       if (brands) {
-        const brandIdsArray = (brands as string).split(",").map((id) => id.trim());
+        const brandIdsArray = (brands as string)
+          .split(",")
+          .map((id) => id.trim());
         query.brandId = { $in: brandIdsArray };
       }
 

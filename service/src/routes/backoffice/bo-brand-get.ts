@@ -5,7 +5,6 @@ import {
   NotFoundError,
   BadRequestError,
   requireAuth,
-  currentUser,
 } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Brand } from "../../shared/models/brand";
@@ -20,7 +19,6 @@ router.get(
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Invalid brand ID"),
   ],
-  currentUser,
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {

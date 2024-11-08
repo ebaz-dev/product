@@ -1,11 +1,6 @@
 import express, { Request, Response } from "express";
 import { query } from "express-validator";
-import {
-  validateRequest,
-  BadRequestError,
-  requireAuth,
-  currentUser,
-} from "@ebazdev/core";
+import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { ProductActiveMerchants } from "../../shared/models/product-active-merchants";
 import mongoose from "mongoose";
@@ -22,7 +17,6 @@ router.get(
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Invalid customer ID"),
   ],
-  currentUser,
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {

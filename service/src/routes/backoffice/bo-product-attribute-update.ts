@@ -5,7 +5,6 @@ import {
   NotFoundError,
   BadRequestError,
   requireAuth,
-  currentUser,
 } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { ProductAttribute } from "../../shared/models/attribute";
@@ -23,7 +22,6 @@ router.put(
     body("name").optional().isString().withMessage("Name must be a string"),
     body("key").optional().isString().withMessage("Key must be a string"),
   ],
-  currentUser,
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {

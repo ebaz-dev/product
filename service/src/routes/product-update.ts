@@ -74,6 +74,7 @@ router.put(
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Merchant ID must be a valid ObjectId to remove"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { id } = req.params;

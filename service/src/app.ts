@@ -61,7 +61,7 @@ app.use(
   })
 );
 
-// app.use(currentUser);
+app.use(currentUser);
 
 app.use(apiPrefix, healthRouter);
 

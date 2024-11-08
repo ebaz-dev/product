@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { query } from "express-validator";
-import { validateRequest } from "@ebazdev/core";
+import { validateRequest, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { ProductPrice, ProductPriceDoc } from "../shared/models/price";
 import mongoose, { FilterQuery } from "mongoose";
@@ -38,6 +38,7 @@ router.get(
       .custom((value) => value === "all" || parseInt(value, 10) > 0)
       .withMessage("Limit must be a positive integer or 'all'"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     try {

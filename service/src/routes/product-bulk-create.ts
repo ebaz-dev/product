@@ -63,6 +63,7 @@ router.post(
       .isFloat({ min: 0 })
       .withMessage("In case must be a non-negative number"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const products = req.body;

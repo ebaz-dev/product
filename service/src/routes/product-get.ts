@@ -1,6 +1,11 @@
 import express, { Request, Response } from "express";
 import { param, query } from "express-validator";
-import { validateRequest, BadRequestError, NotFoundError } from "@ebazdev/core";
+import {
+  validateRequest,
+  BadRequestError,
+  NotFoundError,
+  requireAuth,
+} from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product } from "../shared/models/product";
 import { Merchant } from "@ebazdev/customer";
@@ -17,6 +22,7 @@ router.get(
       .custom((value) => value === "" || mongoose.Types.ObjectId.isValid(value))
       .withMessage("Merchant ID must be a valid ObjectId or an empty string"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { id } = req.params;

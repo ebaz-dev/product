@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { query } from "express-validator";
-import { validateRequest } from "@ebazdev/core";
+import { validateRequest, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product, ProductDoc } from "../shared/models/product";
 import { Promo } from "../shared/models/promo";
@@ -115,6 +115,7 @@ router.get(
       .isBoolean()
       .withMessage("Favourite must be a boolean"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     try {

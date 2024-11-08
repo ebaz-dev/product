@@ -5,7 +5,6 @@ import {
   NotFoundError,
   BadRequestError,
   requireAuth,
-  currentUser,
 } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Promo } from "../../shared/models/promo";
@@ -20,7 +19,6 @@ router.get(
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Invalid promo ID"),
   ],
-  currentUser,
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {

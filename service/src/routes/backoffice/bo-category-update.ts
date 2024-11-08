@@ -5,7 +5,6 @@ import {
   NotFoundError,
   BadRequestError,
   requireAuth,
-  currentUser,
 } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { ProductCategory } from "../../shared/models/category";
@@ -27,7 +26,6 @@ router.put(
       .withMessage("Customer ID must be a valid ObjectId"),
     body("image").optional().isString().withMessage("Image must be a string"),
   ],
-  currentUser,
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {

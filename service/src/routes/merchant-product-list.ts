@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { param, query } from "express-validator";
-import { validateRequest } from "@ebazdev/core";
+import { validateRequest, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product, ProductDoc } from "../shared/models/product";
 import { Merchant, Customer, CustomerDoc } from "@ebazdev/customer";
@@ -18,6 +18,7 @@ router.get(
       .custom((value) => value === "" || mongoose.Types.ObjectId.isValid(value))
       .withMessage("Customer ID must be a valid ObjectId or an empty string"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     try {

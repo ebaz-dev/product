@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { param } from "express-validator";
-import { validateRequest, NotFoundError } from "@ebazdev/core";
+import { validateRequest, NotFoundError, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Promo } from "../shared/models/promo";
 
@@ -9,6 +9,7 @@ const router = express.Router();
 router.get(
   "/promo/:id",
   [param("id").isMongoId().withMessage("Invalid product ID")],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     try {

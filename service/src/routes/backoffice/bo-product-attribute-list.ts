@@ -1,11 +1,6 @@
 import express, { Request, Response } from "express";
 import { query } from "express-validator";
-import {
-  validateRequest,
-  BadRequestError,
-  requireAuth,
-  currentUser,
-} from "@ebazdev/core";
+import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { ProductAttribute } from "../../shared/models/attribute";
 
@@ -31,7 +26,6 @@ router.get(
       .custom((value) => value === "all" || parseInt(value, 10) > 0)
       .withMessage("Limit must be a positive integer or 'all'"),
   ],
-  currentUser,
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {

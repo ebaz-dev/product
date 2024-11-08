@@ -5,7 +5,6 @@ import {
   BadRequestError,
   NotFoundError,
   requireAuth,
-  currentUser,
 } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product } from "../../shared/models/product";
@@ -16,7 +15,6 @@ const router = express.Router();
 router.get(
   "/:id",
   [param("id").isMongoId().withMessage("Invalid product ID")],
-  currentUser,
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
