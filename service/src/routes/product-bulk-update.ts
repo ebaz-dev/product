@@ -53,6 +53,7 @@ router.put(
       .custom((value) => value.every((item: any) => typeof item === "object"))
       .withMessage("Each item in third party data must be an object"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const updates = req.body;

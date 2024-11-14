@@ -1,6 +1,11 @@
 import express, { Request, Response } from "express";
 import { body, param } from "express-validator";
-import { validateRequest, NotFoundError, BadRequestError } from "@ebazdev/core";
+import {
+  validateRequest,
+  NotFoundError,
+  BadRequestError,
+  requireAuth,
+} from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { ProductPrice } from "../shared/models/price";
 import mongoose from "mongoose";
@@ -49,6 +54,7 @@ router.put(
       })
       .withMessage("Price and cost must be numbers"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { id } = req.params;

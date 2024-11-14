@@ -32,9 +32,9 @@ router.post(
     body("priority")
       .isInt({ min: 0 })
       .withMessage("Priority must be a non-negative integer"),
-    body("customerId")
+    body("supplierId")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
-      .withMessage("Customer ID must be a valid ObjectId"),
+      .withMessage("Supplier ID must be a valid ObjectId"),
     body("vendorId")
       .optional()
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
@@ -105,12 +105,13 @@ router.post(
       .notEmpty()
       .withMessage("cityTax is required"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const {
       name,
       barCode,
-      customerId,
+      supplierId,
       vendorId,
       categoryId,
       brandId,
@@ -142,7 +143,7 @@ router.post(
         name,
         slug,
         barCode,
-        customerId,
+        customerId: supplierId,
         vendorId,
         categoryIds: [],
         brandId,
@@ -228,4 +229,4 @@ router.post(
   }
 );
 
-export { router as backofficeProductCreateRouter };
+export { router as boProductCreateRouter };

@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
-import { validateRequest, BadRequestError } from "@ebazdev/core";
+import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { PromoType, PromoTypes } from "../shared/models/promoType";
 
@@ -13,6 +13,7 @@ router.post(
       .isIn(Object.values(PromoTypes))
       .withMessage("Invalid promo type"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { type, customerId } = req.body;

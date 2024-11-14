@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { query } from "express-validator";
-import { validateRequest } from "@ebazdev/core";
+import { validateRequest, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { Product, ProductDoc } from "../../shared/models/product";
 import mongoose, { FilterQuery } from "mongoose";
@@ -31,10 +31,10 @@ router.get(
       .optional()
       .isString()
       .withMessage("SKU must be a string"),
-    query("filter[customerId]")
+    query("filter[supplierId]")
       .optional()
       .custom((value) => value === "" || mongoose.Types.ObjectId.isValid(value))
-      .withMessage("Customer ID must be a valid ObjectId or an empty string"),
+      .withMessage("Supplier ID must be a valid ObjectId or an empty string"),
     query("filter[vendorId]")
       .optional()
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
@@ -76,6 +76,10 @@ router.get(
       .optional()
       .isInt({ min: 1 })
       .withMessage("In case must be a positive integer"),
+    query("filter[isActive]")
+      .optional()
+      .isIn(["0", "1"])
+      .withMessage("isActive must be either '0' or '1'"),
     query("page")
       .optional()
       .isInt({ min: 1 })
@@ -84,44 +88,50 @@ router.get(
       .optional()
       .custom((value) => value === "all" || parseInt(value, 10) > 0)
       .withMessage("Limit must be a positive integer or 'all'"),
-    query("sort[priority]")
+    query("sortKey")
       .optional()
       .isString()
-      .custom((value) => {
-        const [key, order] = value.split(":");
-        return key === "priority" && (order === "asc" || order === "desc");
-      })
-      .withMessage("Order by must be 'priority:asc' or 'priority:desc'"),
+      .withMessage("Sort key must be a string"),
+    query("sortValue")
+      .optional()
+      .isIn(["asc", "desc"])
+      .withMessage("Sort value must be 'asc' or 'desc'"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     try {
       const {
-        filter: {
-          ids,
-          name,
-          barCode,
-          sku,
-          customerId,
-          categories,
-          vendorId,
-          brands,
-          attributeValues,
-          inCase,
-        } = {},
-        page = 1,
-        limit = 20,
-        sort: { priority: orderBy } = { priority: "priority:asc" },
+        filter = {},
+        page = "1",
+        limit = "20",
+        sortKey,
+        sortValue,
       } = req.query as any;
+
+      const {
+        ids,
+        name,
+        barCode,
+        sku,
+        supplierId,
+        categories,
+        vendorId,
+        brands,
+        attributeValues,
+        inCase,
+        isActive,
+      } = filter;
 
       const query: FilterQuery<ProductDoc> = {};
 
       if (name) query.name = { $regex: name, $options: "i" };
       if (barCode) query.barCode = { $regex: barCode, $options: "i" };
       if (sku) query.sku = { $regex: sku, $options: "i" };
-      if (customerId) query.customerId = customerId;
+      if (supplierId) query.customerId = supplierId;
       if (vendorId) query.vendorId = vendorId;
-      if (inCase) query.inCase = inCase;
+      if (inCase) query.inCase = parseInt(inCase, 10);
+      if (isActive !== undefined) query.isActive = isActive === "1";
 
       if (ids) {
         const idsArray = ids.split(",").map((id: string) => id.trim());
@@ -166,11 +176,10 @@ router.get(
       const limitNumber = limit === "all" ? 0 : parseInt(limit, 10);
       const skip = limit === "all" ? 0 : (pageNumber - 1) * limitNumber;
 
-      const sort: { [key: string]: 1 | -1 } = {};
-      if (orderBy) {
-        const [_, order] = orderBy.split(":");
-        sort.priority = order === "desc" ? -1 : 1;
-      }
+      const sort: Record<string, 1 | -1> | undefined =
+        sortKey && sortValue
+          ? { [sortKey]: sortValue === "asc" ? 1 : -1 }
+          : undefined;
 
       const products = await Product.find(query)
         .skip(skip)
@@ -183,6 +192,7 @@ router.get(
           "customer",
           "name type regNo categoryId userId address phone email logo bankAccounts"
         );
+
       const total = await Product.countDocuments(query);
 
       res.status(StatusCodes.OK).send({
@@ -192,7 +202,7 @@ router.get(
         currentPage: limit === "all" ? 1 : pageNumber,
       });
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching products:", error);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
         message: "Something went wrong.",
       });
@@ -200,4 +210,4 @@ router.get(
   }
 );
 
-export { router as backofficeProductListRouter };
+export { router as boProductListRouter };

@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
-import { validateRequest, BadRequestError } from "@ebazdev/core";
+import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
 import { ProductAttribute } from "../shared/models/attribute";
 import slugify from "slugify";
@@ -13,6 +13,7 @@ router.post(
     body("name").isString().notEmpty().withMessage("Name is required"),
     body("key").isString().notEmpty().withMessage("Key is required"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { name, key } = req.body;

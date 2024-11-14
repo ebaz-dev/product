@@ -59,6 +59,7 @@ router.put(
       .isArray()
       .withMessage("Attributes must be an array"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -128,4 +129,4 @@ router.put(
   }
 );
 
-export { router as backofficeProductUpdateRouter };
+export { router as boProductUpdateRouter };

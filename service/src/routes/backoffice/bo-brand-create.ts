@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { body } from "express-validator";
 import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
-import { Brand } from "../shared/models/brand";
+import { Brand } from "../../shared/models/brand";
 import slugify from "slugify";
 import mongoose from "mongoose";
 
@@ -12,18 +12,17 @@ router.post(
   "/brand",
   [
     body("name").isString().notEmpty().withMessage("Name is required"),
-    body("customerId")
+    body("supplierId")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
-      .withMessage("Customer ID must be a valid ObjectId"),
+      .withMessage("Supplier ID must be a valid ObjectId"),
     body("image").isString().notEmpty().withMessage("Image is required"),
   ],
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
-    const { name, customerId, image } = req.body;
+    const { name, supplierId, image } = req.body;
 
     const existingBrand = await Brand.findOne({ name });
-
     if (existingBrand) {
       throw new BadRequestError("Brand already exists");
     }
@@ -34,27 +33,17 @@ router.post(
       const brand = new Brand({
         name,
         slug,
-        customerId,
+        customerId: supplierId,
         image,
       });
 
       await brand.save();
       res.status(StatusCodes.CREATED).send(brand);
-    } catch (error: any) {
-      console.error(error);
-
-      if (error.name === "ValidationError") {
-        const messages = Object.values(error.errors).map(
-          (err: any) => err.message
-        );
-        throw new BadRequestError(`Validation Error: ${messages.join(", ")}`);
-      }
-
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-        message: "Something went wrong.",
-      });
+    } catch (error) {
+      console.error("Error creating brand:", error);
+      throw new BadRequestError("Something went wrong.");
     }
   }
 );
 
-export { router as brandCreateRouter };
+export { router as boBrandCreateRouter };

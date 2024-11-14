@@ -2,44 +2,47 @@ import express, { Request, Response } from "express";
 import { body } from "express-validator";
 import { validateRequest, BadRequestError, requireAuth } from "@ebazdev/core";
 import { StatusCodes } from "http-status-codes";
-import { Brand } from "../shared/models/brand";
+import { ProductCategory } from "../../shared/models/category";
 import slugify from "slugify";
 import mongoose from "mongoose";
 
 const router = express.Router();
 
 router.post(
-  "/brand",
+  "/category",
   [
     body("name").isString().notEmpty().withMessage("Name is required"),
-    body("customerId")
+    body("supplierId")
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
-      .withMessage("Customer ID must be a valid ObjectId"),
-    body("image").isString().notEmpty().withMessage("Image is required"),
+      .withMessage("Supplier ID must be a valid ObjectId"),
+    body("parentId")
+      .optional()
+      .custom((value) => mongoose.Types.ObjectId.isValid(value))
+      .withMessage("Parent ID must be a valid ObjectId"),
   ],
   requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
-    const { name, customerId, image } = req.body;
+    const { name, supplierId, parentId } = req.body;
 
-    const existingBrand = await Brand.findOne({ name });
+    const existingCategory = await ProductCategory.findOne({ name });
 
-    if (existingBrand) {
-      throw new BadRequestError("Brand already exists");
+    if (existingCategory) {
+      throw new BadRequestError("Category already exists");
     }
 
     try {
       const slug = slugify(name, { lower: true, strict: true });
 
-      const brand = new Brand({
+      const category = new ProductCategory({
         name,
         slug,
-        customerId,
-        image,
+        customerId: supplierId,
+        parentId,
       });
 
-      await brand.save();
-      res.status(StatusCodes.CREATED).send(brand);
+      await category.save();
+      res.status(StatusCodes.CREATED).send(category);
     } catch (error: any) {
       console.error(error);
 
@@ -57,4 +60,4 @@ router.post(
   }
 );
 
-export { router as brandCreateRouter };
+export { router as boCategoryCreateRouter };

@@ -105,6 +105,7 @@ router.post(
       .notEmpty()
       .withMessage("cityTax is required"),
   ],
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const {

@@ -1,6 +1,7 @@
 import express from "express";
 import "express-async-errors";
 import { json } from "body-parser";
+import { currentUser } from "@ebazdev/core";
 import { NotFoundError, errorHandler } from "@ebazdev/core";
 import { productCreateRouter } from "./routes/product-create";
 import { productBulkCreateRouter } from "./routes/product-bulk-create";
@@ -22,9 +23,25 @@ import { promoCreateRouter } from "./routes/promo-type-create";
 import { promoGetRouter } from "./routes/promo-get";
 import { productListBymerchantIdRouter } from "./routes/merchant-product-list";
 import { dashboardProductListRouter } from "./routes/dashboard-product-list";
-import { backofficeProductListRouter } from "./routes/backoffice/product-list";
-import { backofficeProductUpdateRouter } from "./routes/backoffice/product-update";
-import { backofficeProductCreateRouter } from "./routes/backoffice/product-create";
+import { boProductListRouter } from "./routes/backoffice/bo-product-list";
+import { boProductUpdateRouter } from "./routes/backoffice/bo-product-update";
+import { boProductCreateRouter } from "./routes/backoffice/bo-product-create";
+import { boProductGetRouter } from "./routes/backoffice/bo-product-get";
+import { boBrandsRouter } from "./routes/backoffice/bo-brand-list";
+import { boBrandCreateRouter } from "./routes/backoffice/bo-brand-create";
+import { boBrandUpdateRouter } from "./routes/backoffice/bo-brand-update";
+import { boBrandGetByIdRouter } from "./routes/backoffice/bo-brand-get";
+import { boCategoriesRouter } from "./routes/backoffice/bo-category-list";
+import { boCategoryCreateRouter } from "./routes/backoffice/bo-category-create";
+import { boCategoryUpdateRouter } from "./routes/backoffice/bo-category-update";
+import { boCategoryGetByIdRouter } from "./routes/backoffice/bo-category-get";
+import { merchantProductsRouter } from "./routes/backoffice/bo-merchant-products";
+import { boPromosRouter } from "./routes/backoffice/bo-promo-list";
+import { boPromoUpdateRouter } from "./routes/backoffice/bo-promo-update";
+import { boPromoGetByIdRouter } from "./routes/backoffice/bo-promo-get";
+import { boProductAttributessRouter } from "./routes/backoffice/bo-product-attribute-list";
+import { boProductAttributeUpdateRouter } from "./routes/backoffice/bo-product-attribute-update";
+import { boProductAttributeGetByIdRouter } from "./routes/backoffice/bo-product-attribute-get";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import { healthRouter } from "./routes/health";
@@ -44,12 +61,35 @@ app.use(
   })
 );
 
+app.use(currentUser);
+
 app.use(apiPrefix, healthRouter);
 
 // Backoffice routes
-app.use(boApiPrefix, backofficeProductListRouter);
-app.use(boApiPrefix, backofficeProductUpdateRouter);
-app.use(boApiPrefix, backofficeProductCreateRouter);
+app.use(boApiPrefix, merchantProductsRouter);
+
+app.use(boApiPrefix, boPromosRouter);
+app.use(boApiPrefix, boPromoUpdateRouter);
+app.use(boApiPrefix, boPromoGetByIdRouter);
+
+app.use(boApiPrefix, boProductAttributessRouter);
+app.use(boApiPrefix, boProductAttributeUpdateRouter);
+app.use(boApiPrefix, boProductAttributeGetByIdRouter);
+
+app.use(boApiPrefix, boBrandsRouter);
+app.use(boApiPrefix, boBrandCreateRouter);
+app.use(boApiPrefix, boBrandUpdateRouter);
+app.use(boApiPrefix, boBrandGetByIdRouter);
+
+app.use(boApiPrefix, boCategoriesRouter);
+app.use(boApiPrefix, boCategoryCreateRouter);
+app.use(boApiPrefix, boCategoryUpdateRouter);
+app.use(boApiPrefix, boCategoryGetByIdRouter);
+
+app.use(boApiPrefix, boProductListRouter);
+app.use(boApiPrefix, boProductUpdateRouter);
+app.use(boApiPrefix, boProductCreateRouter);
+app.use(boApiPrefix, boProductGetRouter);
 
 // Price routes
 app.use(apiPrefix, pricesRouter);
