@@ -9,7 +9,7 @@ const router = express.Router();
 router.get(
   "/promo/:id",
   [param("id").isMongoId().withMessage("Invalid product ID")],
-  requireAuth,
+  // requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     try {
