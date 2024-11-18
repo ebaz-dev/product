@@ -115,7 +115,7 @@ router.get(
       .isBoolean()
       .withMessage("Favourite must be a boolean"),
   ],
-  requireAuth,
+  // requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     try {
