@@ -443,11 +443,6 @@ productSchema.statics.findWithAdjustedPrice = async function (
   if (!colaTsId && !totalTsId) {
     await Promise.all(products.map(adjustedPrices));
   } else if (colaTsId) {
-    console.log('***************************************');
-    console.log('COLA API CLIENT');
-    console.log(ColaAPIClient);
-    console.log('***************************************');
-
     await handleThirdPartyPrices(ColaAPIClient, colaTsId, products);
   } else if (totalTsId) {
     await handleThirdPartyPrices(TotalAPIClient, totalTsId, products);
