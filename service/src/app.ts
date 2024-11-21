@@ -42,6 +42,7 @@ import { boPromoGetByIdRouter } from "./routes/backoffice/bo-promo-get";
 import { boProductAttributessRouter } from "./routes/backoffice/bo-product-attribute-list";
 import { boProductAttributeUpdateRouter } from "./routes/backoffice/bo-product-attribute-update";
 import { boProductAttributeGetByIdRouter } from "./routes/backoffice/bo-product-attribute-get";
+import { boVendorCreateRouter } from "./routes/backoffice/bo-vendor-create";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import { healthRouter } from "./routes/health";
@@ -66,6 +67,8 @@ app.use(currentUser);
 app.use(apiPrefix, healthRouter);
 
 // Backoffice routes
+app.use(boApiPrefix, boVendorCreateRouter);
+
 app.use(boApiPrefix, merchantProductsRouter);
 
 app.use(boApiPrefix, boPromosRouter);

@@ -16,10 +16,13 @@ export class TotalAPIClient extends BaseAPIClient {
   }
 
   // Method to get product by merchant ID using the CocaCola API
-  public async getProductsByMerchantId(tradeshopId: string): Promise<any> {
+  public async getProductsByMerchantId(
+    tradeshopId: string,
+    company: string
+  ): Promise<any> {
     return this.post(`${this.PATH_PREFIX}/productremains`, {
       tradeshopid: tradeshopId,
-      company: "TotalDistribution",
+      company: company,
     });
   }
 
