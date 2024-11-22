@@ -46,6 +46,8 @@ import { boVendorCreateRouter } from "./routes/backoffice/bo-vendor-create";
 import cookieSession from "cookie-session";
 import dotenv from "dotenv";
 import { healthRouter } from "./routes/health";
+import { accessLogger } from "@ebazdev/core";
+
 
 dotenv.config();
 
@@ -63,6 +65,7 @@ app.use(
 );
 
 app.use(currentUser);
+// app.use(accessLogger("product"));
 
 app.use(apiPrefix, healthRouter);
 

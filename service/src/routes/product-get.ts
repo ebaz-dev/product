@@ -22,7 +22,7 @@ router.get(
       .custom((value) => value === "" || mongoose.Types.ObjectId.isValid(value))
       .withMessage("Merchant ID must be a valid ObjectId or an empty string"),
   ],
-  // requireAuth,
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { id } = req.params;

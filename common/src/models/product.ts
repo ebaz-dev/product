@@ -1,14 +1,21 @@
-import { Document, Schema, model, Types, Model, FilterQuery } from "mongoose";
+import mongoose, {
+  Document,
+  Schema,
+  model,
+  Types,
+  Model,
+  FilterQuery,
+} from "mongoose";
 import { updateIfCurrentPlugin } from "mongoose-update-if-current";
 import { ProductPrice, Price } from "./price";
 import { Brand } from "./brand";
 import { ProductCategory } from "./category";
 import { Promo } from "./promo";
-import { Merchant } from "@ebazdev/customer";
-import { ProductActiveMerchants } from "./product-active-merchants";
-import { IntegrationCustomers } from "../utils/integration-customers";
+import { Merchant, Supplier } from "@ebazdev/customer";
 import { ColaAPIClient } from "../utils/cola-api-client";
 import { TotalAPIClient } from "../utils/total-api-client";
+import { MerchantProducts } from "./merchant-products";
+import { Vendor } from "./vendor";
 
 interface AdjustedPrice {
   prices: {
@@ -322,44 +329,78 @@ productSchema.statics.findWithAdjustedPrice = async function (
   params: IfindWithAdjustedPrice
 ) {
   const { merchantId } = params.merchant;
-  const { customerId } = params.query;
+  let { customerId } = params.query;
 
-  const merchantData = await Merchant.findById(merchantId);
-  if (!merchantData) throw new Error("Merchant not found");
+  const merchant = await Merchant.findById(merchantId);
+  if (!merchant) throw new Error("Merchant not found");
+
+  const supplier = await Supplier.findById(customerId);
+  if (!supplier) throw new Error("Supplier not found");
+
+  const supplierHoldingKey = supplier?.holdingKey;
+  const isIntegratedSupplier = supplier?.holdingKey ? true : false;
+
+  const merchantTradeshops = merchant.tradeShops || [];
+
+  let merchantTs = null;
+  let vendorId = null;
+  let apiCompany = null;
+  let useVendor = false;
+  let isTdMerchant = false;
+
+  for (const shop of merchantTradeshops) {
+    if (shop.holdingKey === supplier.holdingKey) {
+      merchantTs = shop;
+    }
+    if (shop.holdingKey === "TD") {
+      isTdMerchant = true;
+    }
+
+    if (merchantTs && isTdMerchant) {
+      break;
+    }
+  }
+
+  const tsId = merchantTs?.tsId;
+
+  if (isTdMerchant) {
+    const totalCustomer = await Supplier.findOne({
+      holdingKey: "TD",
+    });
+
+    customerId = totalCustomer?._id;
+    params.query.customerId = customerId;
+
+    const vendor = await Vendor.findOne({
+      supplierId: customerId,
+      name: supplierHoldingKey,
+    });
+
+    vendorId = vendor?._id;
+    apiCompany = vendor?.apiCompany;
+    useVendor = true;
+  }
+
+  const apiClient = isTdMerchant ? TotalAPIClient : ColaAPIClient;
 
   let activeProductIds: any = [];
-  let colaTsId = null;
-  let totalTsId = null;
+  let activeProducts: any = [];
 
-  const setTradeshopId = () => {
-    const tradeShops = merchantData?.tradeShops || [];
-    if (customerId === IntegrationCustomers.colaCustomerId) {
-      colaTsId =
-        tradeShops.find((shop) => shop.holdingKey === "MCSCC")?.tsId || null;
-    } else if (customerId === IntegrationCustomers.totalCustomerId) {
-      totalTsId =
-        tradeShops.find((shop) => shop.holdingKey === "TD")?.tsId || null;
-    }
-  };
+  if (isIntegratedSupplier && tsId) {
+    activeProducts = await getMerchantProducts(
+      apiClient,
+      merchantId,
+      customerId,
+      tsId,
+      vendorId as Types.ObjectId | undefined,
+      apiCompany as string | undefined
+    );
+  }
 
-  if (
-    merchantId &&
-    [
-      IntegrationCustomers.colaCustomerId,
-      IntegrationCustomers.totalCustomerId,
-    ].includes(customerId)
-  ) {
-    const activeProducts = await ProductActiveMerchants.find({
-      entityReferences: merchantId.toString(),
-      customerId: customerId,
-    }).select("productId");
+  activeProductIds = activeProducts.map((product: any) => product.productId);
 
-    activeProductIds = activeProducts.map((ap) => ap.productId.toString());
-    setTradeshopId();
-
-    if (activeProductIds.length === 0) {
-      return { products: [], count: 0 };
-    }
+  if (activeProductIds.length === 0) {
+    return { products: [], count: 0 };
   }
 
   let query = { ...params.query };
@@ -375,6 +416,10 @@ productSchema.statics.findWithAdjustedPrice = async function (
     if (!query._id.$in.length) {
       return { products: [], count: 0 };
     }
+  }
+
+  if (useVendor && vendorId) {
+    query.vendorId = vendorId;
   }
 
   const count = await this.countDocuments(query);
@@ -398,7 +443,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
         endDate: { $gte: new Date() },
         isActive: true,
         tradeshops: {
-          $in: [colaTsId, totalTsId].filter(Boolean),
+          $in: [tsId].filter(Boolean),
         },
       },
     });
@@ -413,46 +458,29 @@ productSchema.statics.findWithAdjustedPrice = async function (
     ).prices;
   };
 
-  const handleThirdPartyPrices = async (
-    apiClient: any,
-    tsId: any,
-    products: any[]
-  ) => {
-    console.log("*******************");
-    console.log('COLA API CLIENT');
-    console.log(apiClient);
-    console.log("*******************");
-
-    const apiResult = await apiClient
-      .getClient()
-      .getProductsByMerchantId(tsId.toString());
-    const { data: merchantProducts } = apiResult.data;
-
-    products.forEach((product: any) => {
-      const thirdPartyProductId = (product.thirdPartyData || []).find(
-        (data: any) => data.customerId?.toString() === customerId
-      )?.productId;
-
-      const merchantProduct = merchantProducts.find(
-        (p: any) => p.productid === thirdPartyProductId
+  if (!isIntegratedSupplier) {
+    await Promise.all(products.map(adjustedPrices));
+  } else {
+    const productsWithPriceAndQuantity = products.map((product: any) => {
+      const activeProduct = activeProducts.find((p: any) =>
+        p.productId.equals(product._id)
       );
-
       initializeAdjustedPrice(product);
       initializeInventory(product);
 
-      product.adjustedPrice.price = merchantProduct?.price || 0;
-      product.inventory.availableStock = merchantProduct?.quantity || 0;
+      if (activeProduct) {
+        product.adjustedPrice.price = activeProduct.price;
+        product.adjustedPrice.cost = 0;
+        product.inventory.availableStock = activeProduct.quantity;
+
+        return product;
+      }
+
+      return product;
     });
-  };
 
-  if (!colaTsId && !totalTsId) {
-    await Promise.all(products.map(adjustedPrices));
-  } else if (colaTsId) {
-    await handleThirdPartyPrices(ColaAPIClient, colaTsId, products);
-  } else if (totalTsId) {
-    await handleThirdPartyPrices(TotalAPIClient, totalTsId, products);
+    return { products: productsWithPriceAndQuantity, count };
   }
-
   return { products, count };
 };
 
@@ -494,51 +522,71 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     throw new Error("Product not found");
   }
 
-  const customerId = product.customerId.toString();
+  let customerId = product.customerId.toString();
 
-  const merchantData = await Merchant.findById(merchantId);
+  const merchant = await Merchant.findById(merchantId);
+  if (!merchant) throw new Error("Merchant not found");
 
-  let colaTsId = null;
-  let totalTsId = null;
+  const supplier = await Supplier.findById(customerId);
+  if (!supplier) throw new Error("Supplier not found");
 
-  const setTradeshopId = () => {
-    const tradeShops = merchantData?.tradeShops || [];
-    if (customerId === IntegrationCustomers.colaCustomerId) {
-      colaTsId =
-        tradeShops.find((shop) => shop.holdingKey === "MCSCC")?.tsId || null;
-    } else if (customerId === IntegrationCustomers.totalCustomerId) {
-      totalTsId =
-        tradeShops.find((shop) => shop.holdingKey === "TD")?.tsId || null;
-    }
-  };
+  const supplierHoldingKey = supplier?.holdingKey;
+  const isIntegratedSupplier = supplier?.holdingKey ? true : false;
 
-  setTradeshopId();
+  const merchantTradeshops = merchant.tradeShops || [];
+  const merchantTs = merchantTradeshops.find(
+    (shop) => shop.holdingKey === supplier.holdingKey
+  );
 
-  const handleThirdPartyPrices = async (apiClient: any, tsId: any) => {
-    const apiResult = await apiClient
-      .getClient()
-      .getProductsByMerchantId(tsId.toString());
-    const { data: merchantProducts } = apiResult.data;
+  const isTdMerchant = merchantTradeshops.some(
+    (shop) => shop.holdingKey === "TD"
+  );
 
-    const thirdPartyProductId = (product.thirdPartyData || []).find(
-      (data: any) => data.customerId?.toString() === customerId
-    )?.productId;
+  const tsId = merchantTs?.tsId;
+  let vendorId = null;
+  let apiCompany = null;
 
-    const merchantProduct = merchantProducts.find(
-      (p: any) => p.productid === thirdPartyProductId
+  if (isTdMerchant) {
+    const totalCustomer = await Supplier.findOne({
+      holdingKey: "TD",
+    });
+
+    customerId = totalCustomer?._id;
+    const vendor = await Vendor.findOne({
+      supplierId: customerId,
+      name: supplierHoldingKey,
+    });
+
+    vendorId = vendor?._id;
+    apiCompany = vendor?.apiCompany;
+  }
+
+  const apiClient = isTdMerchant ? TotalAPIClient : ColaAPIClient;
+
+  let activeProducts: any = [];
+
+  if (isIntegratedSupplier && tsId) {
+    activeProducts = await getMerchantProducts(
+      apiClient,
+      merchantId,
+      customerId,
+      tsId,
+      vendorId as Types.ObjectId | undefined,
+      apiCompany as string | undefined
     );
+  }
 
+  const activeProduct = activeProducts.find((p: any) =>
+    p.productId.equals(product._id)
+  );
+
+  if (activeProduct) {
     initializeAdjustedPrice(product);
     initializeInventory(product);
 
-    product.adjustedPrice.price = merchantProduct?.price || 0;
-    product.inventory.availableStock = merchantProduct?.quantity || 0;
-  };
-
-  if (colaTsId) {
-    await handleThirdPartyPrices(ColaAPIClient, colaTsId);
-  } else if (totalTsId) {
-    await handleThirdPartyPrices(TotalAPIClient, totalTsId);
+    product.adjustedPrice.price = activeProduct.price;
+    product.adjustedPrice.cost = 0;
+    product.inventory.availableStock = activeProduct.quantity;
   } else {
     product.adjustedPrice = (
       await product.getAdjustedPrice(params.merchant)
@@ -596,3 +644,103 @@ const initializeInventory = (product: any) => {
     product.inventory = { availableStock: 0, reservedStock: 0, totalStock: 0 };
   }
 };
+
+async function getMerchantProducts(
+  apiClient: any,
+  merchantId: Types.ObjectId,
+  supplierId: Types.ObjectId,
+  tsId: string,
+  vendorId?: Types.ObjectId,
+  apiCompany?: string
+) {
+  const query: any = {
+    merchantId,
+    supplierId,
+  };
+
+  if (vendorId) {
+    query.vendorId = vendorId;
+  }
+
+  const merchantProducts = await MerchantProducts.findOne(query);
+
+  const mapProductsToMongoIds = async (
+    products: any[],
+    supplierId: Types.ObjectId
+  ) => {
+    const allSupplierProducts = await Product.find({
+      customerId: supplierId,
+    });
+
+    const productMap = new Map<number, Types.ObjectId>();
+
+    allSupplierProducts.forEach((product) => {
+      product.thirdPartyData?.forEach((data) => {
+        if (data.customerId.equals(supplierId)) {
+          productMap.set(data.productId, product.id);
+        }
+      });
+    });
+
+    return products
+      .map((product) => {
+        const productId = productMap.get(product.productid);
+        if (productId) {
+          return {
+            productId: new mongoose.Types.ObjectId(productId),
+            price: product.price,
+            quantity: product.quantity < 1000 ? 0 : product.quantity,
+          };
+        }
+        return null;
+      })
+      .filter((product) => product !== null);
+  };
+
+  if (merchantProducts) {
+    const currentTime = new Date().getTime();
+    const expirationTime = new Date(merchantProducts.expireAt).getTime();
+    const timeDifference = expirationTime - currentTime;
+
+    if (timeDifference > 0 && timeDifference <= 300000) {
+      return merchantProducts.products;
+    } else {
+      const updatedProductsResponse = await apiClient
+        .getClient()
+        .getProductsByMerchantId(tsId, apiCompany);
+
+      const updatedProducts = await mapProductsToMongoIds(
+        updatedProductsResponse.data.data,
+        supplierId
+      );
+
+      merchantProducts.products = updatedProducts;
+      merchantProducts.expireAt = new Date(currentTime + 300000);
+
+      await merchantProducts.save();
+      return updatedProducts;
+    }
+  } else {
+    const apiResult = await apiClient
+      .getClient()
+      .getProductsByMerchantId(tsId, apiCompany);
+
+    const { data: receivedProducts } = apiResult.data;
+
+    const mappedProducts = await mapProductsToMongoIds(
+      receivedProducts,
+      supplierId
+    );
+
+    const newMerchantProducts = new MerchantProducts({
+      merchantId,
+      supplierId,
+      products: mappedProducts,
+      expireAt: new Date(new Date().getTime() + 300000),
+      ...(vendorId && { vendorId }),
+    });
+    await newMerchantProducts.save();
+
+    return mappedProducts;
+  }
+}

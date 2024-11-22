@@ -19,7 +19,7 @@ router.post(
       .custom((value) => mongoose.Types.ObjectId.isValid(value))
       .withMessage("Supplier ID must be a valid ObjectId"),
   ],
-  //   requireAuth,
+    requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     const { name, apiCompany, supplierId } = req.body;
