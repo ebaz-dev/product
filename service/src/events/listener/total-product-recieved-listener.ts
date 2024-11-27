@@ -56,11 +56,8 @@ export class TotalProductRecievedEventListener extends Listener<TotalProductReci
         thirdPartyData: [{ customerId: totalCustomerId, productId: productId }],
         inCase: incase,
         isActive: false,
+        vendorId: new mongoose.Types.ObjectId(vendorId)
       });
-
-      if (vendorId) {
-        product.vendorId = new mongoose.Types.ObjectId(vendorId);
-      }
 
       await product.save({ session });
 
