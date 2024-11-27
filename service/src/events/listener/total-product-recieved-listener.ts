@@ -23,7 +23,7 @@ export class TotalProductRecievedEventListener extends Listener<TotalProductReci
     session.startTransaction();
 
     try {
-      const { productId, productName, brandName, capacity, incase, barcode } =
+      const { productId, productName, brandName, capacity, incase, barcode, vendorId } =
         data;
 
       const totalCustomerId = new mongoose.Types.ObjectId(totalId);
@@ -57,6 +57,10 @@ export class TotalProductRecievedEventListener extends Listener<TotalProductReci
         inCase: incase,
         isActive: false,
       });
+
+      if (vendorId) {
+        product.vendorId = new mongoose.Types.ObjectId(vendorId);
+      }
 
       await product.save({ session });
 
