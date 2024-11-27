@@ -404,11 +404,12 @@ productSchema.statics.findWithAdjustedPrice = async function (
   }
 
   let query = { ...params.query };
+
   if (activeProductIds.length > 0) {
     query._id = query._id?.$in
       ? {
           $in: query._id.$in.filter((id: any) =>
-            activeProductIds.includes(id.toString())
+            activeProductIds.some((activeId: any) => activeId.equals(id))
           ),
         }
       : { $in: activeProductIds };
