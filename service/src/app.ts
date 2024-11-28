@@ -65,7 +65,7 @@ app.use(
 );
 
 app.use(currentUser);
-// app.use(accessLogger("product"));
+app.use(accessLogger("product"));
 
 app.use(apiPrefix, healthRouter);
 
