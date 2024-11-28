@@ -33,7 +33,7 @@ router.get(
       .custom((value) => value === "all" || parseInt(value, 10) > 0)
       .withMessage("Limit must be a positive integer or 'all'"),
   ],
-  // requireAuth,
+  requireAuth,
   validateRequest,
   async (req: Request, res: Response) => {
     try {
