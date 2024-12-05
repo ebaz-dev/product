@@ -684,8 +684,14 @@ async function getMerchantProducts(
 
     allSupplierProducts.forEach((product) => {
       product.thirdPartyData?.forEach((data) => {
-        const dataCustomerId = data.customerId instanceof mongoose.Types.ObjectId ? data.customerId.toString() : data.customerId;
-        const supplierIdStr = supplierId instanceof mongoose.Types.ObjectId ? supplierId.toString() : supplierId;
+        const dataCustomerId =
+          data.customerId instanceof mongoose.Types.ObjectId
+            ? data.customerId.toString()
+            : data.customerId;
+        const supplierIdStr =
+          supplierId instanceof mongoose.Types.ObjectId
+            ? supplierId.toString()
+            : supplierId;
 
         if (dataCustomerId === supplierIdStr) {
           productMap.set(data.productId, product.id);
