@@ -45,8 +45,7 @@ export class BasPromoRecievedEventListener extends Listener<BasPromoRecievedEven
       if (!promoType) {
         throw new Error(`Invalid promo type: ${thirdPartyPromoTypeCode}`);
       }
-      console.log(supplierId);
-      console.log("****************");
+
       const promo = new Promo({
         customerId: supplierId,
         name: name,
