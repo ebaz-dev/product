@@ -32,10 +32,6 @@ export class BasPromoRecievedEventListener extends Listener<BasPromoRecievedEven
         thirdPartyPromoTypeId,
         thirdPartyPromoType,
         thirdPartyPromoTypeCode,
-        thirdPartyProducts,
-        thirdPartyGiftProducts,
-        thirdPartyGiftProductPackage,
-        thirdPartyTradeshops,
       } = data;
 
       const promoType = await PromoType.findOne({
@@ -69,10 +65,6 @@ export class BasPromoRecievedEventListener extends Listener<BasPromoRecievedEven
           thirdPartyPromoTypeId: thirdPartyPromoTypeId,
           thirdPartyPromoType: thirdPartyPromoType,
           thirdPartyPromoTypeCode: thirdPartyPromoTypeCode,
-          thirdPartyProducts: thirdPartyProducts,
-          thirdPartyGiftProducts: thirdPartyGiftProducts,
-          thirdPartyGiftProductPackage: thirdPartyGiftProductPackage,
-          thirdPartyTradeshops: thirdPartyTradeshops,
         },
       });
 

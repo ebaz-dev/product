@@ -29,8 +29,10 @@ export class BasProductRecievedEventListener extends Listener<BasProductRecieved
         brandName,
         incase,
         capacity,
+        sectorName,
         business,
         barcode,
+        vendorId,
       } = data;
 
       const checkProduct = await Product.find({
@@ -73,6 +75,7 @@ export class BasProductRecievedEventListener extends Listener<BasProductRecieved
       }
 
       const product = new Product({
+        supplierId: supplierId,
         name: productName,
         slug: slug,
         barCode: barcode || "default",
@@ -85,6 +88,7 @@ export class BasProductRecievedEventListener extends Listener<BasProductRecieved
           {
             customerId: supplierId,
             productId: basId,
+            sectorName: sectorName,
             ...(business && { business: business }),
           },
         ],
@@ -92,6 +96,10 @@ export class BasProductRecievedEventListener extends Listener<BasProductRecieved
         isActive: false,
         priority: 0,
       });
+
+      if (vendorId) {
+        product.vendorId = vendorId;
+      }
 
       if (brandId) {
         product.brandId = brandId;

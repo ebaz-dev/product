@@ -2,18 +2,6 @@ import mongoose from "mongoose";
 import { app } from "./app";
 import { natsWrapper } from "./nats-wrapper";
 import { InventoryCreatedListener } from "./events/listener/inventory-created-listener";
-import { ColaProductRecievedEventListener } from "./events/listener/cola-product-recieved-listener";
-import { ColaProductUpdatedEventListener } from "./events/listener/cola-product-updated-listener";
-import { ColaProductDeactivatedEventListener } from "./events/listener/cola-product-deactivated-listener";
-import { ColaMerchantProductUpdatedListener } from "./events/listener/cola-merchant-product-updated";
-import { ColaPromoRecievedListener } from "./events/listener/cola-promo-recieved-listener";
-import { ColaPromoUpdatedListener } from "./events/listener/cola-promo-updated-listener";
-import { TotalProductRecievedEventListener } from "./events/listener/total-product-recieved-listener";
-import { TotalProductUpdatedEventListener } from "./events/listener/total-product-updated-listener";
-import { TotalProductDeactivatedEventListener } from "./events/listener/total-product-deactivated-listener";
-import { TotalMerchantProductsUpdatedEventListener } from "./events/listener/total-merchant-product-updated";
-import { TotalPromoRecievedListener } from "./events/listener/total-promo-recieved-listener";
-import { TotalPromoUpdatedListener } from "./events/listener/total-promo-updated-listener";
 import { BasProductRecievedEventListener } from "./events/listener/bas-product-recieved-listener";
 import { BasPromoRecievedEventListener } from "./events/listener/bas-promo-recieved-listener";
 
@@ -66,20 +54,6 @@ const start = async () => {
     process.on("SIGTERM", () => natsWrapper.client.close());
 
     new InventoryCreatedListener(natsWrapper.client).listen();
-    new ColaProductRecievedEventListener(natsWrapper.client).listen();
-    new ColaProductUpdatedEventListener(natsWrapper.client).listen();
-    new ColaProductDeactivatedEventListener(natsWrapper.client).listen();
-    new ColaMerchantProductUpdatedListener(natsWrapper.client).listen();
-    new ColaPromoRecievedListener(natsWrapper.client).listen();
-    new ColaPromoUpdatedListener(natsWrapper.client).listen();
-
-    new TotalProductRecievedEventListener(natsWrapper.client).listen();
-    new TotalProductUpdatedEventListener(natsWrapper.client).listen();
-    new TotalProductDeactivatedEventListener(natsWrapper.client).listen();
-    new TotalMerchantProductsUpdatedEventListener(natsWrapper.client).listen();
-    new TotalPromoRecievedListener(natsWrapper.client).listen();
-    new TotalPromoUpdatedListener(natsWrapper.client).listen();
-
     new BasProductRecievedEventListener(natsWrapper.client).listen();
     new BasPromoRecievedEventListener(natsWrapper.client).listen();
 
