@@ -124,7 +124,7 @@ router.get(
       } = filter;
 
       const query: FilterQuery<ProductDoc> = {};
-
+      console.log('start');
       if (name) query.name = { $regex: name, $options: "i" };
       if (barCode) query.barCode = { $regex: barCode, $options: "i" };
       if (sku) query.sku = { $regex: sku, $options: "i" };
