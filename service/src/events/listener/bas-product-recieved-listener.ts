@@ -63,7 +63,7 @@ export class BasProductRecievedEventListener extends Listener<BasProductRecieved
             slug: slugify(brandName, { lower: true }),
             customerId: supplierId,
             image:
-              "https://pics.ebazaar.link/media/product/9989646044764598603108547708202205130611436585188195547456197872435120.png",
+              "https://m.ebazaar.mn/media/product/27d2e8954f9d8cbf9d23f500ae466f1e24e823c7171f95a87da2f28ffd0e.jpg",
             isActive: true,
           });
 
@@ -82,7 +82,7 @@ export class BasProductRecievedEventListener extends Listener<BasProductRecieved
         sku: "default",
         customerId: supplierId,
         images: [
-          "https://pics.ebazaar.link/media/product/27d2e8954f9d8cbf9d23f500ae466f1e24e823c7171f95a87da2f28ffd0e.jpg",
+          "https://m.ebazaar.mn/media/product/27d2e8954f9d8cbf9d23f500ae466f1e24e823c7171f95a87da2f28ffd0e.jpg",
         ],
         thirdPartyData: [
           {
