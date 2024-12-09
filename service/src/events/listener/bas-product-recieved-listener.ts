@@ -73,7 +73,7 @@ export class BasProductRecievedEventListener extends Listener<BasProductRecieved
           brandId = existingBrand._id as mongoose.Types.ObjectId;
         }
       }
-
+      console.log('event');
       const product = new Product({
         supplierId: supplierId,
         name: productName,
