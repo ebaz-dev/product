@@ -86,7 +86,7 @@ export class BasProductRecievedEventListener extends Listener<BasProductRecieved
         ],
         thirdPartyData: [
           {
-            customerId: supplierId as mongoose.Types.ObjectId,
+            customerId: new mongoose.Types.ObjectId(supplierId),
             productId: basId,
             sectorName: sectorName,
             ...(business && { business: business }),
