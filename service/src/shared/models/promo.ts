@@ -5,11 +5,13 @@ import { PromoTypeNames, PromoTypes } from "./promoType";
 interface thirdPartyData {
   thirdPartyPromoName: string;
   thirdPartyPromoId: number;
+  thirdPartyPromoNo: string;
   thirdPartyPromoTypeId: number;
   thirdPartyPromoType: string;
   thirdPartyPromoTypeCode: string;
   thirdParyProducts: number[];
   thirdPartyGiftProducts: number[];
+  thirdPartyGiftProductPackage: object;
   thirdPartyTradeshops: number[];
 }
 interface PromoDoc extends Document {
@@ -27,6 +29,7 @@ interface PromoDoc extends Document {
   promoType: PromoTypes;
   products: Types.ObjectId[];
   giftProducts: Types.ObjectId[];
+  giftProductPackage: object;
   tradeshops: number[];
   thirdPartyData?: thirdPartyData;
 }

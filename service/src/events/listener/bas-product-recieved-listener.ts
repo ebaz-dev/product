@@ -1,8 +1,8 @@
 import { Message } from "node-nats-streaming";
 import { Listener } from "@ebazdev/core";
 import {
-  ColaProductRecievedEvent,
-  ColaProductSubjects,
+  BasProductRecievedEvent,
+  BasProductSubjects,
 } from "@ebazdev/cola-integration";
 import { queueGroupName } from "./queu-group-name";
 import { Product } from "../../shared/models/product";
@@ -13,25 +13,31 @@ import mongoose from "mongoose";
 import slugify from "slugify";
 import { natsWrapper } from "../../nats-wrapper";
 
-export class ColaProductRecievedEventListener extends Listener<ColaProductRecievedEvent> {
-  readonly subject = ColaProductSubjects.ColaProductRecieved;
+export class BasProductRecievedEventListener extends Listener<BasProductRecievedEvent> {
+  readonly subject = BasProductSubjects.BasProductRecieved;
   queueGroupName = queueGroupName;
 
-  customerId = process.env.COLA_CUSTOMER_ID;
-  customerObjectId = new mongoose.Types.ObjectId(this.customerId);
-
-  async onMessage(data: ColaProductRecievedEvent["data"], msg: Message) {
+  async onMessage(data: BasProductRecievedEvent["data"], msg: Message) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      const { productId, productName, brandName, capacity, incase, barcode } =
-        data;
+      const {
+        supplierId,
+        basId,
+        productName,
+        brandName,
+        incase,
+        capacity,
+        sectorName,
+        business,
+        barcode,
+        vendorId,
+      } = data;
 
       const checkProduct = await Product.find({
-        customerId: this.customerObjectId,
-        "thirdPartyData.customerId": this.customerObjectId,
-        "thirdPartyData.productId": productId,
+        "thirdPartyData.customerId": supplierId,
+        "thirdPartyData.productId": basId,
       }).session(session);
 
       if (checkProduct.length > 0) {
@@ -48,16 +54,16 @@ export class ColaProductRecievedEventListener extends Listener<ColaProductReciev
       if (brandName) {
         const existingBrand = await Brand.findOne({
           name: brandName,
-          customerId: this.customerObjectId,
+          customerId: supplierId,
         }).session(session);
 
         if (!existingBrand) {
           const newBrand = new Brand({
             name: brandName,
             slug: slugify(brandName, { lower: true }),
-            customerId: this.customerObjectId,
+            customerId: supplierId,
             image:
-              "https://pics.ebazaar.link/media/product/9989646044764598603108547708202205130611436585188195547456197872435120.png",
+              "https://m.ebazaar.mn/media/product/27d2e8954f9d8cbf9d23f500ae466f1e24e823c7171f95a87da2f28ffd0e.jpg",
             isActive: true,
           });
 
@@ -67,29 +73,39 @@ export class ColaProductRecievedEventListener extends Listener<ColaProductReciev
           brandId = existingBrand._id as mongoose.Types.ObjectId;
         }
       }
-
+      console.log('event');
       const product = new Product({
+        supplierId: supplierId,
         name: productName,
         slug: slug,
         barCode: barcode || "default",
         sku: "default",
-        customerId: this.customerObjectId,
+        customerId: supplierId,
         images: [
-          "https://pics.ebazaar.link/media/product/27d2e8954f9d8cbf9d23f500ae466f1e24e823c7171f95a87da2f28ffd0e.jpg",
+          "https://m.ebazaar.mn/media/product/27d2e8954f9d8cbf9d23f500ae466f1e24e823c7171f95a87da2f28ffd0e.jpg",
         ],
         thirdPartyData: [
-          { customerId: this.customerObjectId, productId: productId },
+          {
+            customerId: new mongoose.Types.ObjectId(supplierId),
+            productId: basId,
+            sectorName: sectorName,
+            ...(business && { business: business }),
+          },
         ],
         inCase: incase,
         isActive: false,
         priority: 0,
       });
 
+      if (vendorId) {
+        product.vendorId = vendorId;
+      }
+
       if (brandId) {
         product.brandId = brandId;
       }
 
-      if (capacity) {
+      if (capacity && capacity > 0) {
         product.attributes = product.attributes || [];
 
         product.attributes.push({

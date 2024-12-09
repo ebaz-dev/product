@@ -26,6 +26,7 @@ export class InventoryCreatedListener extends Listener<InventoryCreatedEvent> {
 
       msg.ack();
     } catch (error) {
+      msg.ack();
       console.error("Error processing InventoryCreatedEvent:", error);
     }
   }

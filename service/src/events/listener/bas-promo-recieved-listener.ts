@@ -1,39 +1,37 @@
 import { Message } from "node-nats-streaming";
 import { Listener } from "@ebazdev/core";
 import {
-  ColaPromoRecievedEvent,
-  ColaPromoSubjects,
+  BasPromoRecievedEvent,
+  BasPromoSubjects,
 } from "@ebazdev/cola-integration";
 import { queueGroupName } from "./queu-group-name";
 import { Promo } from "../../shared/models/promo";
 import { PromoType } from "../../shared/models/promoType";
-import mongoose from "mongoose";
 
-export class ColaPromoRecievedListener extends Listener<ColaPromoRecievedEvent> {
-  readonly subject = ColaPromoSubjects.ColaPromoRecieved;
+export class BasPromoRecievedEventListener extends Listener<BasPromoRecievedEvent> {
+  readonly subject = BasPromoSubjects.BasPromoRecieved;
   queueGroupName = queueGroupName;
 
-  async onMessage(data: ColaPromoRecievedEvent["data"], msg: Message) {
+  async onMessage(data: BasPromoRecievedEvent["data"], msg: Message) {
     try {
       const {
+        supplierId,
         name,
-        customerId,
         startDate,
         endDate,
         thresholdQuantity,
         promoPercent,
         giftQuantity,
         isActive,
-        tradeshops,
         products,
         giftProducts,
+        giftProductPackage,
+        tradeshops,
         thirdPartyPromoId,
+        thirdPartyPromoNo,
         thirdPartyPromoTypeId,
         thirdPartyPromoType,
         thirdPartyPromoTypeCode,
-        colaProducts,
-        colaGiftProducts,
-        colaTradeshops,
       } = data;
 
       const promoType = await PromoType.findOne({
@@ -45,7 +43,7 @@ export class ColaPromoRecievedListener extends Listener<ColaPromoRecievedEvent> 
       }
 
       const promo = new Promo({
-        customerId: new mongoose.Types.ObjectId(customerId),
+        customerId: supplierId,
         name: name,
         startDate: startDate,
         endDate: endDate,
@@ -58,16 +56,15 @@ export class ColaPromoRecievedListener extends Listener<ColaPromoRecievedEvent> 
         promoType: promoType.type,
         products: products,
         giftProducts: giftProducts,
+        giftProductPackage: giftProductPackage,
         tradeshops: tradeshops,
         thirdPartyData: {
           thirdPartyPromoName: name,
           thirdPartyPromoId: thirdPartyPromoId,
+          thirdPartyPromoNo: thirdPartyPromoNo,
           thirdPartyPromoTypeId: thirdPartyPromoTypeId,
           thirdPartyPromoType: thirdPartyPromoType,
           thirdPartyPromoTypeCode: thirdPartyPromoTypeCode,
-          thirdParyProducts: colaProducts,
-          thirdPartyGiftProducts: colaGiftProducts,
-          thirdPartyTradeshops: colaTradeshops,
         },
       });
 
@@ -75,7 +72,7 @@ export class ColaPromoRecievedListener extends Listener<ColaPromoRecievedEvent> 
 
       msg.ack();
     } catch (error: any) {
-      console.error("Error processing ColaPromoRecievedListener:", error);
+      console.error("Error processing BasPromoRecievedEventListener:", error);
       msg.ack();
     }
   }

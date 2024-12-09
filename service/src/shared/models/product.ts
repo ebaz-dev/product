@@ -14,6 +14,7 @@ import { Promo } from "./promo";
 import { Merchant, Supplier } from "@ebazdev/customer";
 import { ColaAPIClient } from "../utils/cola-api-client";
 import { TotalAPIClient } from "../utils/total-api-client";
+import { AnungooAPIClient } from "../utils/anungoo-api-client";
 import { MerchantProducts } from "./merchant-products";
 import { Vendor } from "./vendor";
 
@@ -98,6 +99,13 @@ interface Promo {
   tradeshops: number[];
 }
 
+interface thirdPartyData {
+  customerId: Types.ObjectId;
+  productId: number;
+  sectorName?: string;
+  business?: string;
+}
+
 const attributeSchema = new Schema<Attribute>(
   {
     id: {
@@ -142,7 +150,7 @@ interface ProductDoc extends Document {
   prices: Types.ObjectId[];
   _adjustedPrice?: Price;
   adjustedPrice?: Price;
-  thirdPartyData?: Array<Record<string, any>>;
+  thirdPartyData?: Array<thirdPartyData>;
   inCase: number;
   inventoryId: Types.ObjectId;
   inventory?: Inventory;
@@ -347,6 +355,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
   let apiCompany = null;
   let useVendor = false;
   let isTdMerchant = false;
+  let isAnungooMerchant = false;
 
   for (const shop of merchantTradeshops) {
     if (shop.holdingKey === supplier.holdingKey) {
@@ -354,9 +363,11 @@ productSchema.statics.findWithAdjustedPrice = async function (
     }
     if (shop.holdingKey === "TD") {
       isTdMerchant = true;
+    } else if (shop.holdingKey === "AG") {
+      isAnungooMerchant = true;
     }
 
-    if (merchantTs && isTdMerchant) {
+    if (merchantTs && (isTdMerchant || isAnungooMerchant)) {
       break;
     }
   }
@@ -381,7 +392,11 @@ productSchema.statics.findWithAdjustedPrice = async function (
     useVendor = true;
   }
 
-  const apiClient = isTdMerchant ? TotalAPIClient : ColaAPIClient;
+  const apiClient = isTdMerchant
+    ? TotalAPIClient
+    : isAnungooMerchant
+      ? AnungooAPIClient
+      : ColaAPIClient;
 
   let activeProductIds: any = [];
   let activeProducts: any = [];
@@ -662,7 +677,6 @@ async function getMerchantProducts(
   if (vendorId) {
     query.vendorId = vendorId;
   }
-
   const merchantProducts = await MerchantProducts.findOne(query);
 
   const mapProductsToMongoIds = async (
@@ -677,7 +691,16 @@ async function getMerchantProducts(
 
     allSupplierProducts.forEach((product) => {
       product.thirdPartyData?.forEach((data) => {
-        if (data.customerId.equals(supplierId)) {
+        const dataCustomerId =
+          data.customerId instanceof mongoose.Types.ObjectId
+            ? data.customerId.toString()
+            : data.customerId;
+        const supplierIdStr =
+          supplierId instanceof mongoose.Types.ObjectId
+            ? supplierId.toString()
+            : supplierId;
+
+        if (dataCustomerId === supplierIdStr) {
           productMap.set(data.productId, product.id);
         }
       });
@@ -686,6 +709,7 @@ async function getMerchantProducts(
     return products
       .map((product) => {
         const productId = productMap.get(product.productid);
+
         if (productId) {
           return {
             productId: new mongoose.Types.ObjectId(productId),
