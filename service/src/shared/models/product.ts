@@ -99,6 +99,13 @@ interface Promo {
   tradeshops: number[];
 }
 
+interface thirdPartyData {
+  customerId: Types.ObjectId;
+  productId: number;
+  sectorName?: string;
+  business?: string;
+}
+
 const attributeSchema = new Schema<Attribute>(
   {
     id: {
@@ -143,7 +150,7 @@ interface ProductDoc extends Document {
   prices: Types.ObjectId[];
   _adjustedPrice?: Price;
   adjustedPrice?: Price;
-  thirdPartyData?: Array<Record<string, any>>;
+  thirdPartyData?: Array<thirdPartyData>;
   inCase: number;
   inventoryId: Types.ObjectId;
   inventory?: Inventory;
