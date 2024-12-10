@@ -9,10 +9,6 @@ interface thirdPartyData {
   thirdPartyPromoTypeId: number;
   thirdPartyPromoType: string;
   thirdPartyPromoTypeCode: string;
-  thirdParyProducts: number[];
-  thirdPartyGiftProducts: number[];
-  thirdPartyGiftProductPackage: object;
-  thirdPartyTradeshops: number[];
 }
 interface PromoDoc extends Document {
   id: Types.ObjectId;
@@ -20,6 +16,7 @@ interface PromoDoc extends Document {
   name: string;
   startDate: Date;
   endDate: Date;
+  tresholdAmount: number;
   thresholdQuantity: number;
   promoPercent: number;
   giftQuantity: number;
@@ -29,7 +26,7 @@ interface PromoDoc extends Document {
   promoType: PromoTypes;
   products: Types.ObjectId[];
   giftProducts: Types.ObjectId[];
-  giftProductPackage: object;
+  giftProductPackage: object[];
   tradeshops: number[];
   thirdPartyData?: thirdPartyData;
 }
@@ -106,6 +103,10 @@ const promoSchema = new Schema<PromoDoc>(
         type: Number,
         required: false,
       },
+      thirdPartyPromoNo: {
+        type: String,
+        required: false,
+      },
       thirdPartyPromoTypeId: {
         type: Number,
         required: false,
@@ -116,18 +117,6 @@ const promoSchema = new Schema<PromoDoc>(
       },
       thirdPartyPromoTypeCode: {
         type: String,
-        required: false,
-      },
-      thirdParyProducts: {
-        type: [Number],
-        required: false,
-      },
-      thirdPartyGiftProducts: {
-        type: [Number],
-        required: false,
-      },
-      thirdPartyTradeshops: {
-        type: [Number],
         required: false,
       },
     },
