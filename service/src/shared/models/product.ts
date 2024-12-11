@@ -453,7 +453,7 @@ productSchema.statics.findWithAdjustedPrice = async function (
     .populate({
       path: "promos",
       select:
-        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops thirdPartyData.thirdPartyPromoId thirdPartyData.thirdPartyPromoNo",
+        "name tresholdAmount thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts giftProductPackage thirdPartyData.thirdPartyPromoId thirdPartyData.thirdPartyPromoNo thirdPartyData.thirdPartyPromoTypeId thirdPartyData.thirdPartyPromoType thirdPartyData.thirdPartyPromoTypeCode",
       match: {
         startDate: { $lte: new Date() },
         endDate: { $gte: new Date() },
@@ -526,7 +526,7 @@ productSchema.statics.findOneWithAdjustedPrice = async function (
     .populate({
       path: "promos",
       select:
-        "name thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts tradeshops thirdPartyData.thirdPartyPromoId thirdPartyData.thirdPartyPromoNo",
+        "name tresholdAmount thresholdQuantity promoPercent giftQuantity isActive promoTypeId promoTypeName promoType startDate endDate products giftProducts giftProductPackage thirdPartyData.thirdPartyPromoId thirdPartyData.thirdPartyPromoNo thirdPartyData.thirdPartyPromoTypeId thirdPartyData.thirdPartyPromoType thirdPartyData.thirdPartyPromoTypeCode",
       match: {
         startDate: { $lte: new Date() },
         endDate: { $gte: new Date() },
